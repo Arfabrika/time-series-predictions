@@ -11,6 +11,7 @@ from source.algorythms.non_stationary import checkP
 import scipy.stats as scs
 import statsmodels.tsa.api as smt
 import statsmodels.api as sm
+from datetime import datetime
 
 # 227 strs, from 2004-07-01 to 2023-05-01
 #pred size: 250, from 2004-07-01 to 2024-04-01
@@ -41,33 +42,39 @@ def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
 from statsmodels.tsa.stattools import kpss
 
 class PL:
-    def __init__(self, path, sizes) -> None:
+    def __init__(self, path, sizes, learn_size) -> None:
         self.data_all = loadData(path)
         self.sizes = sizes
+        self.learn_size = learn_size
+        self.sizes[1] = int(self.sizes[0] * self.learn_size)
+
+        for i in range(len(self.data_all["Date"])):
+            self.data_all["Date"].iloc[i] = pd.Timestamp(datetime.strptime(self.data_all["Date"].iloc[i], '%B %Y'))
 
     def analyzeLanguage(self, lang):
+        # self.data_all["Date"] = pd.to_datetime(self.data_all["Date"], format='%Y-%m')
         data = self.data_all.loc[:, ["Date", lang]]
         
-        #checkP(data[lang])
-        # tsplot(data[lang], lags=30)
-        data['log'] = np.log(data[lang])
-        #checkP(data['log'])
-        #data['без_тренда'] = data[lang] - data[lang].rolling(window=5).mean()
-        data['без_тренда'] = data['log'] - data['log'].rolling(window=5).mean()
+        # #checkP(data[lang])
+        # # tsplot(data[lang], lags=30)
+        # data['log'] = np.log(data[lang])
+        # #checkP(data['log'])
+        # #data['без_тренда'] = data[lang] - data[lang].rolling(window=5).mean()
+        # data['без_тренда'] = data['log'] - data['log'].rolling(window=5).mean()
         
-        data.dropna(inplace=True)
-        #checkP(data['без_тренда'])
-        # tsplot(data['без_тренда'], lags=30)
-        data['Users_box'], lmbda = scs.boxcox(data['без_тренда'] + 0.8) # прибавляем единицу, так как в исходном ряде есть нули
+        # data.dropna(inplace=True)
+        # #checkP(data['без_тренда'])
+        # # tsplot(data['без_тренда'], lags=30)
+        # data['Users_box'], lmbda = scs.boxcox(data['без_тренда'] + 0.8) # прибавляем единицу, так как в исходном ряде есть нули
         
-        # tsplot(data.Users_box, lags=30)
-        checkP(data['Users_box'])
-        # kpsstest = kpss(data['Users_box'], regression='c')
-        # kpss_output = pd.Series(kpsstest[0:3], index=['Test Statistic','p-value','Lags Used'])
-        # for key,value in kpsstest[3].items():
-        #     kpss_output['Critical Value (%s)'%key] = value
-        # print (kpss_output)
-        data['Users_box'] += 0.8
+        # # tsplot(data.Users_box, lags=30)
+        # checkP(data['Users_box'])
+        # # kpsstest = kpss(data['Users_box'], regression='c')
+        # # kpss_output = pd.Series(kpsstest[0:3], index=['Test Statistic','p-value','Lags Used'])
+        # # for key,value in kpsstest[3].items():
+        # #     kpss_output['Critical Value (%s)'%key] = value
+        # # print (kpss_output)
+        # data['Users_box'] += 0.8
 
         # print("Оптимальный параметр преобразования Бокса-Кокса: %f" % lmbda)
         # plt.plot(data['Date'], data[lang], data['Users_box'])
@@ -77,8 +84,8 @@ class PL:
         linearCoefs = [1,2,3,4,5,10]
         arimaCoefs = [[5, 0, 1], [8, 1, 0], [1, 1, 1]]
         movingAverageCoefs = [1, 2, 4, 7]
-        # for lc in linearCoefs:
-        #     linearRegression(sizes, data, lc, f'Linear regression with degree = {lc}')
+        for lc in linearCoefs:
+            linearRegression(self.sizes, data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
         # for lc in linearCoefs:
         #     for mac in movingAverageCoefs:
@@ -93,4 +100,4 @@ class PL:
         # linearRegression(self.sizes, data, 2, f'Linear regression with degree = {2}')
 
 
-        sarima(self.sizes, data[['Date', lang]], [3, 2, 0, lmbda], f'ARIMA with p = {5}, d = {0}, q = {1}', data[['Date','без_тренда']])
+        #sarima(self.sizes, data[['Date', lang]], [3, 2, 0, lmbda], f'ARIMA with p = {5}, d = {0}, q = {1}', data[['Date','без_тренда']])

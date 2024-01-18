@@ -10,20 +10,17 @@ import matplotlib.pyplot as plt
 from source.algorythms.non_stationary import invboxcox, kpssTest
 from tqdm import tqdm
 
-
 PLOTS_ON = True
 
 def linearRegression(sizes, yn, pow, name = 'Linear regression'):
-    date_pred = pd.date_range(start=pd.to_datetime(yn["Date"]).min(), freq='1m', periods=sizes[0])
     yn['Date']= pd.to_datetime(yn['Date'])
     x = np.array(pd.to_numeric(yn['Date']))
     coefs = np.polyfit(x[:sizes[1]], yn[yn.columns[1]][:sizes[1]], pow)
-    x_pred_arr = pd.to_numeric(date_pred)
-    y_pred = np.polyval(coefs, x_pred_arr)
+    y_pred = np.polyval(coefs, x)
     print(f"mean squared error: {mean_squared_error(yn[yn.columns[1]][:sizes[1]], y_pred[:sizes[1]])}")
     print(f"coefficient of determination: {r2_score(yn[yn.columns[1]][:sizes[1]], y_pred[:sizes[1]])}")
     if PLOTS_ON:
-        makePlot(yn['Date'], yn[yn.columns[1]], date_pred, y_pred, date_pred[225:], y_pred[225:], sizes[1], name)
+        makePlot(yn['Date'], yn[yn.columns[1]], y_pred, yn['Date'][sizes[1]:], y_pred[sizes[1]:], name)
 
 def movingAverage(sizes, yn, windowSize, func, funcparams, name):
     y_pred = yn[yn.columns[1]].rolling(window=windowSize).mean()
