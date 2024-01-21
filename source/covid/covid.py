@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from source.utils.dataload import loadData
-from source.algorythms.algos import arima, linearRegression, movingAverage, sarima
+from source.algorythms.algos import Algos
+from source.utils.dataedit import makeDataContinuous
 
 class Covid:
     def __init__(self, path, learn_size) -> None:
         self.data = loadData(path)
-        self.learn_size = learn_size
         self.filterData()
+        self.algos = Algos(int(len(self.data) * learn_size), '', '')
 
     def filterData(self):
         self.data = self.data.drop([ "cdc_report_dt", "pos_spec_dt", "current_status",
@@ -33,9 +34,7 @@ class Covid:
             ills.append(len(fr))
         new_data = pd.DataFrame({'Date': unique_dates, 'death_cnt': deaths, 'hosp_cnt': hosps, 'ill_cnt': ills})
         new_data = new_data.sort_values('Date')
-        #print(new_data.head())
         new_data["Date"] = pd.to_datetime(new_data["Date"], format='%Y/%m/%d')
-        #print(new_data.head())
         self.data = new_data.copy()
 
         # tmp draw
@@ -49,6 +48,20 @@ class Covid:
         linearCoefs = [1,2,3,4,5,10]
         arimaCoefs = [[5, 0, 1], [8, 1, 0], [1, 1, 1]]
         movingAverageCoefs = [1, 2, 4, 7]
+        sarimaxCoefs = [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
+
+        self.algos.changeAxisNames('Date', param)
+        contData = makeDataContinuous(self.data, 'Date', '1d')
+
+        # for lc in linearCoefs:
+        #     self.algos.linearRegression(self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')
 
         for lc in linearCoefs:
-            linearRegression([len(self.data), int(len(self.data) * self.learn_size)], self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')
+            for mac in movingAverageCoefs:
+                self.algos.movingAverage(self.data[['Date', param]], mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+
+        for ac in arimaCoefs:
+            self.algos.arima(contData[param], ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+
+        for sc in sarimaxCoefs:
+            self.algos.sarimax(contData[param], sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
