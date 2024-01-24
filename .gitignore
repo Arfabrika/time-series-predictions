@@ -153,3 +153,4 @@ cython_debug/
 
 /tmp
 *.png
+datasets/covid.csv

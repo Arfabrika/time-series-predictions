@@ -6,7 +6,7 @@ def mainfunc():
     # pl = PL("./datasets/programming languages.csv", learnSize)
     # curlang = 'Rust'
     # pl.analyzeLanguage(curlang) 
-    cv = Covid("./datasets/covid.csv", learnSize)
+    cv = Covid("./datasets/covid1.csv", learnSize)
     cv.makePredictions('ill_cnt')
 
 if __name__ == '__main__':

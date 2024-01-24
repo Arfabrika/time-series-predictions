@@ -1,6 +1,5 @@
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 
 from source.utils.dataload import loadData
 from source.algorythms.algos import Algos
@@ -56,12 +55,16 @@ class Covid:
         # for lc in linearCoefs:
         #     self.algos.linearRegression(self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')
 
-        for lc in linearCoefs:
-            for mac in movingAverageCoefs:
-                self.algos.movingAverage(self.data[['Date', param]], mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+        # for lc in linearCoefs:
+        #     for mac in movingAverageCoefs:
+        #         self.algos.movingAverage(self.data[['Date', param]], mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+
+        # for ac in arimaCoefs:
+        #     self.algos.arima(contData[param], ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
         for ac in arimaCoefs:
-            self.algos.arima(contData[param], ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+           for mac in movingAverageCoefs:
+                self.algos.movingAverage(contData[param], mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        for sc in sarimaxCoefs:
-            self.algos.sarimax(contData[param], sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        # for sc in sarimaxCoefs:
+        #     self.algos.sarimax(contData[param], sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')

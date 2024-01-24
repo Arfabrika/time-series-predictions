@@ -1,9 +1,7 @@
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score 
 import itertools
-from source.utils.plots import makePlot
 
 from source.algorythms.algos import Algos
 from source.utils.dataload import loadData
@@ -14,9 +12,6 @@ import statsmodels.tsa.api as smt
 import statsmodels.api as sm
 from datetime import datetime
 
-# 227 strs, from 2004-07-01 to 2023-05-01
-#pred size: 250, from 2004-07-01 to 2024-04-01
-# training limit: 158 (2017-09-01)
 PLOTS_ON = True
 
 def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
@@ -86,16 +81,16 @@ class PL:
         # for lc in linearCoefs:
         #     self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
-        # for lc in linearCoefs:
-        #     for mac in movingAverageCoefs:
-        #         self.algos.movingAverage(data, mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+        for lc in linearCoefs:
+            for mac in movingAverageCoefs:
+                self.algos.movingAverage(data, mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
 
         # for ac in arimaCoefs:
         #     self.algos.arima(contData, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
         # for ac in arimaCoefs:
         #    for mac in movingAverageCoefs:
-        #         movingAverage(sizes, data, mac, arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        #         self.algos.movingAverage(contData, mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        for sc in sarimaxCoefs:
-            self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        # for sc in sarimaxCoefs:
+        #     self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')

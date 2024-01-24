@@ -1,14 +1,11 @@
 import numpy as np
 import pandas as pd
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score 
 from statsmodels.tsa.arima.model import ARIMA 
 import itertools
 from source.utils.plots import makePlot
-from source.utils.dataedit import makeDateItemData
+from source.utils.datameasure import DataMeasure
 import statsmodels.api as sm
 import scipy.stats as scs
-import matplotlib.pyplot as plt
-from source.algorythms.non_stationary import invboxcox, kpssTest
 from tqdm import tqdm
 
 class Algos:
@@ -17,6 +14,7 @@ class Algos:
         self.namex = namex
         self.namey = namey
         self.PLOTS_ON = plot_status
+        self.dataMeasure = DataMeasure()
 
     def changeAxisNames(self, newx, newy):
         self.namex = newx
@@ -26,21 +24,19 @@ class Algos:
         x = np.array([yn['Date'].iloc[i].value for i in range(len(yn))])
         coefs = np.polyfit(x[:self.learn_size], yn[yn.columns[1]][:self.learn_size], pow)
         y_pred = np.polyval(coefs, x)
-        print(f"mean squared error: {mean_squared_error(yn[yn.columns[1]][:self.learn_size], y_pred[:self.learn_size])}")
-        print(f"coefficient of determination: {r2_score(yn[yn.columns[1]][:self.learn_size], y_pred[:self.learn_size])}")
+        self.dataMeasure.measurePredictions(yn[yn.columns[1]][self.learn_size:], y_pred[self.learn_size:len(yn)])
         if self.PLOTS_ON:
             makePlot(yn['Date'], yn[yn.columns[1]], 
-                     y_pred, 
-                     yn['Date'][self.learn_size:].values, y_pred[self.learn_size:],
+                     y_pred, self.learn_size,
                      name, xname=self.namex, yname=self.namey)
 
     def movingAverage(self, yn, windowSize, func, funcparams, name):
-        y_pred = yn[yn.columns[1]].rolling(window=windowSize).mean()
+        column = yn[yn.columns[1]] if type(yn) == pd.DataFrame else yn
+        y_pred = column.rolling(window=windowSize).mean()
         for i in range(windowSize - 1):
-            y_pred.iloc[i] = yn[yn.columns[1]].iloc[i]
-        newData = pd.concat([yn['Date'], y_pred], axis=1)
+            y_pred.iloc[i] = column.iloc[i]
+        newData = (pd.concat([yn['Date'], y_pred], axis=1) if type(yn) == pd.DataFrame else y_pred)
         func(newData, funcparams,  name + f' with moving average, window size = {windowSize}')
-
 
     # ARIMA
     def arima(self, y, coefs, name='ARIMA'):
@@ -68,16 +64,14 @@ class Algos:
         modelfit = mymodel.fit() 
         pred = modelfit.get_prediction(start = y.index[0], end = y.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
+        forecasted = pred.predicted_mean[self.learn_size:len(y)]
+        actual = y[self.learn_size:] 
+        self.dataMeasure.measurePredictions(actual, forecasted)
         if self.PLOTS_ON:
             makePlot(y.index, y,
                     pred.predicted_mean,
-                    y.index[self.learn_size:], pred.predicted_mean[self.learn_size:],
-                    name, pred_ci
+                    self.learn_size, name, pred_ci, xname=self.namex, yname=self.namey
                     )
-        forecasted = pred.predicted_mean[self.learn_size:]
-        actual = y[self.learn_size:]
-        print(f"mean squared error: {mean_squared_error(actual, forecasted)}")
-        print(f"coefficient of determination: {r2_score(actual, forecasted)}")
 
     # SARIMAX
     def sarimax(self, y, coefs, name='SARIMAX'):
@@ -133,13 +127,11 @@ class Algos:
         modelfit = mymodel.fit(disp=-1)
         pred = modelfit.get_prediction(start = y.index[0], end = y.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
+        forecasted = pred.predicted_mean[self.learn_size:len(y)]
+        actual = y[self.learn_size:] 
+        self.dataMeasure.measurePredictions(actual, forecasted)
         if self.PLOTS_ON:
             makePlot(y.index, y,
-                    pred.predicted_mean,
-                    y.index[self.learn_size:], pred.predicted_mean[self.learn_size:],
-                    name, pred_ci
+                    pred.predicted_mean, self.learn_size,
+                    name, pred_ci, xname=self.namex, yname=self.namey
                     )
-        forecasted = pred.predicted_mean[self.learn_size:]
-        actual = y[self.learn_size:]
-        print(f"mean squared error: {mean_squared_error(actual, forecasted)}")
-        print(f"coefficient of determination: {r2_score(actual, forecasted)}")
