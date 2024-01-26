@@ -38,7 +38,7 @@ def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
 class PL:
     def __init__(self, path, learn_size) -> None:
         self.data_all = loadData(path)
-        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %')
+        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %', False)
 
         for i in range(len(self.data_all["Date"])):
             self.data_all.loc[i, "Date"] = pd.to_datetime(datetime.strptime(self.data_all["Date"].iloc[i], '%B %Y'))
@@ -81,16 +81,17 @@ class PL:
         # for lc in linearCoefs:
         #     self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
-        for lc in linearCoefs:
-            for mac in movingAverageCoefs:
-                self.algos.movingAverage(data, mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+        # for lc in linearCoefs:
+        #     for mac in movingAverageCoefs:
+        #         self.algos.movingAverage(data, mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
 
-        # for ac in arimaCoefs:
-        #     self.algos.arima(contData, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        for ac in arimaCoefs:
+            self.algos.arima(contData, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        # for ac in arimaCoefs:
-        #    for mac in movingAverageCoefs:
-        #         self.algos.movingAverage(contData, mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        for ac in arimaCoefs:
+           for mac in movingAverageCoefs:
+                self.algos.movingAverage(contData, mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        # for sc in sarimaxCoefs:
-        #     self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        for sc in sarimaxCoefs:
+            self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        self.algos.outtbl.save()

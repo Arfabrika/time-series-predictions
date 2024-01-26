@@ -2,11 +2,13 @@ import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA 
 import itertools
-from source.utils.plots import makePlot
-from source.utils.datameasure import DataMeasure
 import statsmodels.api as sm
 import scipy.stats as scs
 from tqdm import tqdm
+
+from source.utils.plots import makePlot
+from source.utils.datameasure import DataMeasure
+from source.utils.out_data_table import OutDataTable
 
 class Algos:
     def __init__(self, learn_size, namex, namey, plot_status = True) -> None:
@@ -14,7 +16,12 @@ class Algos:
         self.namex = namex
         self.namey = namey
         self.PLOTS_ON = plot_status
-        self.dataMeasure = DataMeasure()
+        self.dataMeasure = DataMeasure(False)
+        columnNames = ['name', 'lrpow', 'movAvgWinSize', 
+                       'arima_p', 'arima_d', 'arima_q',
+                       'sarimax_p', 'sarimax_d', 'sarimax_q',
+                        'MAE', 'MAPE', 'MSE', 'R2']
+        self.outtbl = OutDataTable(columnNames, 'algorithms.xlsx', 'MSE')
 
     def changeAxisNames(self, newx, newy):
         self.namex = newx
@@ -24,7 +31,11 @@ class Algos:
         x = np.array([yn['Date'].iloc[i].value for i in range(len(yn))])
         coefs = np.polyfit(x[:self.learn_size], yn[yn.columns[1]][:self.learn_size], pow)
         y_pred = np.polyval(coefs, x)
-        self.dataMeasure.measurePredictions(yn[yn.columns[1]][self.learn_size:], y_pred[self.learn_size:len(yn)])
+        metrics = self.dataMeasure.measurePredictions(yn[yn.columns[1]][self.learn_size:], y_pred[self.learn_size:len(yn)])
+        out_data = [name, pow]
+        out_data.extend(metrics.values())
+        self.outtbl.add(out_data, [0, 1, -4, -3, -2, -1])
+        self.outtbl.write()
         if self.PLOTS_ON:
             makePlot(yn['Date'], yn[yn.columns[1]], 
                      y_pred, self.learn_size,
@@ -36,6 +47,7 @@ class Algos:
         for i in range(windowSize - 1):
             y_pred.iloc[i] = column.iloc[i]
         newData = (pd.concat([yn['Date'], y_pred], axis=1) if type(yn) == pd.DataFrame else y_pred)
+        self.outtbl.add([windowSize], [2])
         func(newData, funcparams,  name + f' with moving average, window size = {windowSize}')
 
     # ARIMA
@@ -66,7 +78,15 @@ class Algos:
         pred_ci = pred.conf_int()
         forecasted = pred.predicted_mean[self.learn_size:len(y)]
         actual = y[self.learn_size:] 
-        self.dataMeasure.measurePredictions(actual, forecasted)
+        metrics = self.dataMeasure.measurePredictions(actual, forecasted)
+
+        # data to out table
+        out_data = [name]
+        out_data.extend(coefs)
+        out_data.extend(metrics.values())
+        self.outtbl.add(out_data, [0, 3, 4, 5, -4, -3, -2, -1])
+        self.outtbl.write()
+
         if self.PLOTS_ON:
             makePlot(y.index, y,
                     pred.predicted_mean,
@@ -129,7 +149,15 @@ class Algos:
         pred_ci = pred.conf_int()
         forecasted = pred.predicted_mean[self.learn_size:len(y)]
         actual = y[self.learn_size:] 
-        self.dataMeasure.measurePredictions(actual, forecasted)
+        metrics = self.dataMeasure.measurePredictions(actual, forecasted)
+
+        # data to out table
+        out_data = [name]
+        out_data.extend(coefs)
+        out_data.extend(metrics.values())
+        self.outtbl.add(out_data, [0, 6, 7, 8, -4, -3, -2, -1])
+        self.outtbl.write()
+
         if self.PLOTS_ON:
             makePlot(y.index, y,
                     pred.predicted_mean, self.learn_size,

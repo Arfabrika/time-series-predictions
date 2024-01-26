@@ -1,8 +1,9 @@
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
 
 class DataMeasure:
-    def __init__(self, consoleFlag = True) -> None:
+    def __init__(self, consoleFlag = True, roundFlag = True) -> None:
         self.consoleFlag = consoleFlag
+        self.roundFlag = roundFlag
 
     def measurePredictions(self, y, y_pred):
         metrics = {}
@@ -21,4 +22,8 @@ class DataMeasure:
 
         if self.consoleFlag:
             print(metrics)
+
+        if self.roundFlag:
+            for key in metrics.keys():
+                metrics[key] = round(metrics[key], 3)
         return metrics

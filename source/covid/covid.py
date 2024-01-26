@@ -9,7 +9,7 @@ class Covid:
     def __init__(self, path, learn_size) -> None:
         self.data = loadData(path)
         self.filterData()
-        self.algos = Algos(int(len(self.data) * learn_size), '', '')
+        self.algos = Algos(int(len(self.data) * learn_size), '', '', False)
 
     def filterData(self):
         self.data = self.data.drop([ "cdc_report_dt", "pos_spec_dt", "current_status",
@@ -52,19 +52,21 @@ class Covid:
         self.algos.changeAxisNames('Date', param)
         contData = makeDataContinuous(self.data, 'Date', '1d')
 
-        # for lc in linearCoefs:
-        #     self.algos.linearRegression(self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')
+        for lc in linearCoefs:
+            self.algos.linearRegression(self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')
 
-        # for lc in linearCoefs:
-        #     for mac in movingAverageCoefs:
-        #         self.algos.movingAverage(self.data[['Date', param]], mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
+        for lc in linearCoefs:
+            for mac in movingAverageCoefs:
+                self.algos.movingAverage(self.data[['Date', param]], mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
 
-        # for ac in arimaCoefs:
-        #     self.algos.arima(contData[param], ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        for ac in arimaCoefs:
+            self.algos.arima(contData[param], ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
         for ac in arimaCoefs:
            for mac in movingAverageCoefs:
                 self.algos.movingAverage(contData[param], mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        # for sc in sarimaxCoefs:
-        #     self.algos.sarimax(contData[param], sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        for sc in sarimaxCoefs:
+            self.algos.sarimax(contData[param], sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+
+        self.algos.outtbl.save()
