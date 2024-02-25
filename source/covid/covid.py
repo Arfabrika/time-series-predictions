@@ -45,12 +45,15 @@ class Covid:
 
     def makePredictions(self, param):
         linearCoefs = [1,2,3,4,5,10]
-        arimaCoefs = [[5, 0, 1], [8, 1, 0], [1, 1, 1]]
+        arimaCoefs = [[2, 4, 3], [5, 0, 1], [8, 1, 0], [1, 1, 1]]
         movingAverageCoefs = [1, 2, 4, 7]
         sarimaxCoefs = [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
 
         self.algos.changeAxisNames('Date', param)
         contData = makeDataContinuous(self.data, 'Date', '1d')
+
+        # coefs = self.algos.findSARIMAXCoefs(contData[param], [0, 3], [0, 3], [0, 3],[0, 3], [0, 3], [0, 3], [0, 30], printFlag=True)
+        # print(coefs)
 
         for lc in linearCoefs:
             self.algos.linearRegression(self.data[['Date', param]], lc, f'Linear regression with degree = {lc}')

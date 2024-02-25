@@ -26,3 +26,9 @@ class OutDataTable:
             col_idx = self.tbl.columns.get_loc(column)
             writer.sheets['algos'].set_column(col_idx, col_idx, column_length)
         writer.close()
+
+    def makeIndsArr(self, colNames):
+        arr = []
+        for name in colNames:
+            arr.append(self.tbl.columns.get_loc(name))
+        return arr

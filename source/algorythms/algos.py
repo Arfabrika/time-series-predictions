@@ -1,10 +1,11 @@
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA 
-import itertools
+from itertools import product
 import statsmodels.api as sm
 import scipy.stats as scs
 from tqdm import tqdm
+import warnings
 
 from source.utils.plots import makePlot
 from source.utils.datameasure import DataMeasure
@@ -16,12 +17,14 @@ class Algos:
         self.namex = namex
         self.namey = namey
         self.PLOTS_ON = plot_status
-        self.dataMeasure = DataMeasure(False)
+        self.dataMeasure = DataMeasure(True)
         columnNames = ['name', 'lrpow', 'movAvgWinSize', 
                        'arima_p', 'arima_d', 'arima_q',
                        'sarimax_p', 'sarimax_d', 'sarimax_q',
+                       'sarimax_P', 'sarimax_D', 'sarimax_Q', 'period',
                         'MAE', 'MAPE', 'MSE', 'R2']
         self.outtbl = OutDataTable(columnNames, 'algorithms.xlsx', 'MSE')
+        warnings.filterwarnings("ignore")
 
     def changeAxisNames(self, newx, newy):
         self.namex = newx
@@ -34,7 +37,8 @@ class Algos:
         metrics = self.dataMeasure.measurePredictions(yn[yn.columns[1]][self.learn_size:], y_pred[self.learn_size:len(yn)])
         out_data = [name, pow]
         out_data.extend(metrics.values())
-        self.outtbl.add(out_data, [0, 1, -4, -3, -2, -1])
+        inds = self.outtbl.makeIndsArr(['name', 'lrpow', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:
             makePlot(yn['Date'], yn[yn.columns[1]], 
@@ -47,29 +51,45 @@ class Algos:
         for i in range(windowSize - 1):
             y_pred.iloc[i] = column.iloc[i]
         newData = (pd.concat([yn['Date'], y_pred], axis=1) if type(yn) == pd.DataFrame else y_pred)
-        self.outtbl.add([windowSize], [2])
+        self.outtbl.add([windowSize], self.outtbl.makeIndsArr(['movAvgWinSize']))
         func(newData, funcparams,  name + f' with moving average, window size = {windowSize}')
+
+    def findARIMACoefs(self, y, p_lims, d_lims, q_lims, printFlag = False):
+        p = range(p_lims[0], p_lims[1])
+        d = range(d_lims[0], d_lims[1])
+        q = range(q_lims[0], q_lims[1])
+
+        parameters = product(p, d, q)
+        parameters_list = list(parameters)
+        results = []
+        best_aic = float("inf")
+
+        for param in parameters_list:
+            if printFlag:
+                print(f"{param} in progress")
+            #try except нужен, потому что на некоторых наборах параметров модель не обучается
+            try:
+                mdl = self.arima(y, param)
+                model = mdl.fit()
+            #выводим параметры, на которых модель не обучается и переходим к следующему набору
+            except Exception:
+                print('wrong parameters:', param)
+                continue
+            aic = model.aic
+            #сохраняем лучшую модель, aic, параметры
+            if aic < best_aic:
+                best_aic = aic
+                best_param = param
+            results.append([param, model.aic])
+        result_table = pd.DataFrame(results)
+        result_table.columns = ['parameters', 'aic']
+        if printFlag:
+            print(f'---\nBest is {best_param}\n---')
+            print(result_table.sort_values(by = 'aic', ascending=True).head())
+        return result_table
 
     # ARIMA
     def arima(self, y, coefs, name='ARIMA'):
-        import warnings
-        warnings.filterwarnings("ignore")
-        # подбор коэффициентов
-        # import warnings
-        # warnings.filterwarnings("ignore")
-        # p = range(0,15)
-        # d = q = range(0,7)
-        # pdq = list(itertools.product(p, d, q))
-        # best_pdq = (0,0,0)
-        # best_aic = np.inf
-        # for params in pdq:
-        #     model_test = ARIMA(yn, order = params)
-        #     result_test = model_test.fit()
-        #     if result_test.aic < best_aic:
-        #         best_pdq = params
-        #         best_aic = result_test.aic
-        # print(best_pdq, best_aic)
-        # return
         # 8 1 0 - alg
         # 5 0 1 - myself
         mymodel = ARIMA(y[:self.learn_size], order =(coefs[0], coefs[1], coefs[2])) 
@@ -84,7 +104,8 @@ class Algos:
         out_data = [name]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
-        self.outtbl.add(out_data, [0, 3, 4, 5, -4, -3, -2, -1])
+        inds = self.outtbl.makeIndsArr(['name', 'arima_p', 'arima_d', 'arima_q', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds) 
         self.outtbl.write()
 
         if self.PLOTS_ON:
@@ -92,6 +113,44 @@ class Algos:
                     pred.predicted_mean,
                     self.learn_size, name, pred_ci, xname=self.namex, yname=self.namey
                     )
+        return mymodel
+
+    def findSARIMAXCoefs(self, y, p_lims, d_lims, q_lims, ps_lims, ds_lims, qs_lims, period_lims, printFlag = False):
+        p = range(p_lims[0], p_lims[1])
+        d = range(d_lims[0], d_lims[1])
+        q = range(q_lims[0], q_lims[1])
+        ps = range(ps_lims[0], ps_lims[1])
+        ds = range(ds_lims[0], ds_lims[1])
+        qs = range(qs_lims[0], qs_lims[1])
+        period = range(period_lims[0], period_lims[1])
+
+        parameters = product(p, d, q, ps, ds, qs, period)
+        parameters_list = list(parameters)
+        results = []
+        best_aic = float("inf")
+
+        for param in parameters_list:
+            if printFlag:
+                print(f"{param} in progress")
+            #try except нужен, потому что на некоторых наборах параметров модель не обучается
+            try:
+                model=sm.tsa.statespace.SARIMAX(y, order=(param[0], param[1], param[2]), 
+                                                 seasonal_order=(param[3], param[4], param[5], param[6])).fit(disp=-1)
+            #выводим параметры, на которых модель не обучается и переходим к следующему набору
+            except Exception:
+                print('wrong parameters:', param)
+                continue
+            aic = model.aic
+            #сохраняем лучшую модель, aic, параметры
+            if aic < best_aic:
+                best_aic = aic
+                best_param = param
+            results.append([param, model.aic])
+        result_table = pd.DataFrame(results)
+        result_table.columns = ['parameters', 'aic']
+        if printFlag:
+            print(f'---\nBest is {best_param}\n---')
+            print(result_table.sort_values(by = 'aic', ascending=True).head())
 
     # SARIMAX
     def sarimax(self, y, coefs, name='SARIMAX'):
@@ -104,46 +163,9 @@ class Algos:
 
         # kpssTest(yn['box'], 'box')
 
-        # ps = range(0, 5)
-        # d=1
-        # qs = range(0, 4)
-        # Ps = range(0, 5)
-        # D=1
-        # Qs = range(0, 1)
-
-        #from itertools import product
-
-        # parameters = product(ps, qs, Ps, Qs)
-        # parameters_list = list(parameters)
-        # results = []
-        # best_aic = float("inf")
-
-        # for param in tqdm(parameters_list):
-        #     #try except нужен, потому что на некоторых наборах параметров модель не обучается
-        #     try:
-        #         model=sm.tsa.statespace.SARIMAX(yn['box'], order=(param[0], d, param[1]), 
-        #                                         seasonal_order=(param[2], D, param[3], 24*7)).fit(disp=-1)
-        #     #выводим параметры, на которых модель не обучается и переходим к следующему набору
-        #     except ValueError:
-        #         print('wrong parameters:', param)
-        #         continue
-        #     aic = model.aic
-        #     #сохраняем лучшую модель, aic, параметры
-        #     if aic < best_aic:
-        #         best_model = model
-        #         best_aic = aic
-        #         best_param = param
-        #     results.append([param, model.aic])
-
-        # warnings.filterwarnings('default')
-
-        # result_table = pd.DataFrame(results)
-        # result_table.columns = ['parameters', 'aic']
-        # print(f'---\nBest is {best_param}\n---')
-        # print(result_table.sort_values(by = 'aic', ascending=True).head())
-        #return
-
-        mymodel = sm.tsa.statespace.SARIMAX(y[:self.learn_size], order =(coefs[0], coefs[1], coefs[2]))
+        mymodel = sm.tsa.statespace.SARIMAX(y[:self.learn_size], order =(coefs[0], coefs[1], coefs[2]),
+                                            seasonal_order=(coefs[3], coefs[4], coefs[5], coefs[6]))
+        # mymodel = sm.tsa.statespace.SARIMAX(y[:self.learn_size], order =(1, 1, 0), seasonal_order=(2, 1, 2, 2))
         modelfit = mymodel.fit(disp=-1)
         pred = modelfit.get_prediction(start = y.index[0], end = y.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
@@ -155,7 +177,10 @@ class Algos:
         out_data = [name]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
-        self.outtbl.add(out_data, [0, 6, 7, 8, -4, -3, -2, -1])
+        inds = self.outtbl.makeIndsArr(['name', 'sarimax_p', 'sarimax_d', 'sarimax_q',
+                                        'sarimax_P', 'sarimax_D', 'sarimax_Q', 'period',
+                                         'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
         self.outtbl.write()
 
         if self.PLOTS_ON:

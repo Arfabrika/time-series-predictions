@@ -7,6 +7,8 @@ from source.algorythms.algos import Algos
 from source.utils.dataload import loadData
 from source.utils.dataedit import makeDataContinuous
 from source.algorythms.non_stationary import checkP
+from source.algorythms.narx import NARX
+
 import scipy.stats as scs
 import statsmodels.tsa.api as smt
 import statsmodels.api as sm
@@ -38,7 +40,7 @@ def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
 class PL:
     def __init__(self, path, learn_size) -> None:
         self.data_all = loadData(path)
-        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %', False)
+        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %', True)
 
         for i in range(len(self.data_all["Date"])):
             self.data_all.loc[i, "Date"] = pd.to_datetime(datetime.strptime(self.data_all["Date"].iloc[i], '%B %Y'))
@@ -73,11 +75,10 @@ class PL:
         # plt.legend()
         # plt.show()
         
-        linearCoefs = [1,2,3,4,5,10]
-        arimaCoefs = [[5, 0, 1], [8, 1, 0], [1, 1, 1]]
-        movingAverageCoefs = [1, 2, 4, 7]
-        sarimaxCoefs = [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
-
+        # linearCoefs = [3]#[i + 1 for i in range(10)]#[1,2,3,4,5,10]
+        # arimaCoefs = [[0, 4, 9]]#[[2, 10, 5], [2, 8, 1]]#[[5, 0, 1], [8, 1, 0], [1, 1, 1]] [[1, 3, 3]]
+        # movingAverageCoefs = [1, 2, 4, 7]
+        sarimaxCoefs = [[0, 4, 9, 3, 0, 1, 25]]# [[0, 4, 9, 3, 0, 1, 20]] [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
         # for lc in linearCoefs:
         #     self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
@@ -85,13 +86,22 @@ class PL:
         #     for mac in movingAverageCoefs:
         #         self.algos.movingAverage(data, mac, self.algos.linearRegression, lc, f'Linear regression with degree = {lc}')
 
-        for ac in arimaCoefs:
-            self.algos.arima(contData, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        # for ac in arimaCoefs:
+        #     self.algos.arima(contData, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        for ac in arimaCoefs:
-           for mac in movingAverageCoefs:
-                self.algos.movingAverage(contData, mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
+        # for ac in arimaCoefs:
+        #    for mac in movingAverageCoefs:
+        #         self.algos.movingAverage(contData, mac, self.algos.arima, ac, f'ARIMA with p = {ac[0]}, d = {ac[1]}, q = {ac[2]}')
 
-        for sc in sarimaxCoefs:
-            self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
-        self.algos.outtbl.save()
+        # for sc in sarimaxCoefs:
+        #     self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
+        # coefs = self.algos.findARIMACoefs(contData, [0, 11], [0, 11], [0, 11], printFlag=True)
+        # coefs.to_excel('pl_coefs_arima.xlsx')
+        for i in range(20):
+            curdata = data.copy(deep=True)
+            narx = NARX(curdata, 1, 0.7, 2)
+            narx.run()
+            print(i)
+        #coefs = self.algos.findSARIMAXCoefs(contData, [0, 1], [4, 5], [9, 10], [0, 1], [0, 1], [0, 1], [20, 21], printFlag=True)
+        #self.algos.outtbl.save()
+        narx.outtbl.save()
