@@ -11,6 +11,8 @@ from source.utils.plots import makePlot
 from source.utils.datameasure import DataMeasure
 from source.utils.out_data_table import OutDataTable
 
+from source.algorithms.narx import NARX
+
 class Algos:
     def __init__(self, learn_size, namex, namey, plot_status = True) -> None:
         self.learn_size = learn_size
@@ -165,7 +167,6 @@ class Algos:
 
         mymodel = sm.tsa.statespace.SARIMAX(y[:self.learn_size], order =(coefs[0], coefs[1], coefs[2]),
                                             seasonal_order=(coefs[3], coefs[4], coefs[5], coefs[6]))
-        # mymodel = sm.tsa.statespace.SARIMAX(y[:self.learn_size], order =(1, 1, 0), seasonal_order=(2, 1, 2, 2))
         modelfit = mymodel.fit(disp=-1)
         pred = modelfit.get_prediction(start = y.index[0], end = y.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
@@ -188,3 +189,19 @@ class Algos:
                     pred.predicted_mean, self.learn_size,
                     name, pred_ci, xname=self.namex, yname=self.namey
                     )
+
+    def narx(self, data, params, name = 'NARX'):
+        curdata = data.copy(deep=True)
+        narx = NARX(curdata, self.learn_size, params, name)
+        y = narx.predict()
+        metrics = self.dataMeasure.measurePredictions(curdata.iloc[:, [-1]].iloc[self.learn_size:len(y)],
+                                                      y[self.learn_size:])
+        out_data = [name]
+        out_data.extend(metrics.values())
+        inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
+        self.outtbl.write()
+        if self.PLOTS_ON:
+            makePlot(curdata['Date'].iloc[:len(y)], curdata[curdata.columns[-1]].iloc[:len(y)], 
+                     y, self.learn_size,
+                     name, xname=self.namex , yname=self.namey)

@@ -3,11 +3,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import itertools
 
-from source.algorythms.algos import Algos
+from source.algorithms.algos import Algos
 from source.utils.dataload import loadData
 from source.utils.dataedit import makeDataContinuous
-from source.algorythms.non_stationary import checkP
-from source.algorythms.narx import NARX
+from source.algorithms.non_stationary import checkP
+from source.algorithms.narx import NARX
 
 import scipy.stats as scs
 import statsmodels.tsa.api as smt
@@ -97,11 +97,8 @@ class PL:
         #     self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
         # coefs = self.algos.findARIMACoefs(contData, [0, 11], [0, 11], [0, 11], printFlag=True)
         # coefs.to_excel('pl_coefs_arima.xlsx')
-        for i in range(20):
-            curdata = data.copy(deep=True)
-            narx = NARX(curdata, 1, 0.7, 2)
-            narx.run()
+        for i in range(2):
+            self.algos.narx(data, [2, 100, 1000])
             print(i)
         #coefs = self.algos.findSARIMAXCoefs(contData, [0, 1], [4, 5], [9, 10], [0, 1], [0, 1], [0, 1], [20, 21], printFlag=True)
-        #self.algos.outtbl.save()
-        narx.outtbl.save()
+        self.algos.outtbl.save()
