@@ -40,7 +40,7 @@ def tsplot(y, lags=None, figsize=(12, 7), style='bmh'):
 class PL:
     def __init__(self, path, learn_size) -> None:
         self.data_all = loadData(path)
-        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %', True)
+        self.algos = Algos(int(len(self.data_all) * learn_size), 'Date', 'Mean popularity in %')
 
         for i in range(len(self.data_all["Date"])):
             self.data_all.loc[i, "Date"] = pd.to_datetime(datetime.strptime(self.data_all["Date"].iloc[i], '%B %Y'))
@@ -75,12 +75,12 @@ class PL:
         # plt.legend()
         # plt.show()
         
-        # linearCoefs = [3]#[i + 1 for i in range(10)]#[1,2,3,4,5,10]
+        linearCoefs = [3]#[i + 1 for i in range(10)]#[1,2,3,4,5,10]
         # arimaCoefs = [[0, 4, 9]]#[[2, 10, 5], [2, 8, 1]]#[[5, 0, 1], [8, 1, 0], [1, 1, 1]] [[1, 3, 3]]
         # movingAverageCoefs = [1, 2, 4, 7]
         sarimaxCoefs = [[0, 4, 9, 3, 0, 1, 25]]# [[0, 4, 9, 3, 0, 1, 20]] [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
-        # for lc in linearCoefs:
-        #     self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
+        for lc in linearCoefs:
+            self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
         # for lc in linearCoefs:
         #     for mac in movingAverageCoefs:

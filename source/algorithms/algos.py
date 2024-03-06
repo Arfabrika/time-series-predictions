@@ -8,23 +8,22 @@ from tqdm import tqdm
 import warnings
 
 from source.utils.plots import makePlot
+from source.utils.dataload import loadConfig
 from source.utils.datameasure import DataMeasure
 from source.utils.out_data_table import OutDataTable
 
 from source.algorithms.narx import NARX
 
 class Algos:
-    def __init__(self, learn_size, namex, namey, plot_status = True) -> None:
+    def __init__(self, learn_size, namex, namey) -> None:
         self.learn_size = learn_size
         self.namex = namex
         self.namey = namey
-        self.PLOTS_ON = plot_status
-        self.dataMeasure = DataMeasure(True)
-        columnNames = ['name', 'lrpow', 'movAvgWinSize', 
-                       'arima_p', 'arima_d', 'arima_q',
-                       'sarimax_p', 'sarimax_d', 'sarimax_q',
-                       'sarimax_P', 'sarimax_D', 'sarimax_Q', 'period',
-                        'MAE', 'MAPE', 'MSE', 'R2']
+        config_data = loadConfig('./config.json')
+        self.PLOTS_ON = config_data["plot_out"]
+
+        self.dataMeasure = DataMeasure(config_data["measure_out"])
+        columnNames = config_data["column_names"]
         self.outtbl = OutDataTable(columnNames, 'algorithms.xlsx', 'MSE')
         warnings.filterwarnings("ignore")
 

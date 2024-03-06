@@ -6,10 +6,14 @@ from source.algorithms.algos import Algos
 from source.utils.dataedit import makeDataContinuous
 
 class Covid:
-    def __init__(self, path, learn_size) -> None:
+    def __init__(self, path, learn_size, isNeedFilter = True) -> None:
         self.data = loadData(path)
-        self.filterData()
-        self.algos = Algos(int(len(self.data) * learn_size), '', '', True)
+        if isNeedFilter:
+            self.filterData()
+            self.data["Date"] = pd.to_datetime(self.data["Date"], format='%Y/%m/%d')
+        else:
+            self.data["Date"] = pd.to_datetime(self.data["Date"], format='%Y-%m-%d')
+        self.algos = Algos(int(len(self.data) * learn_size), '', '')
 
     def filterData(self):
         self.data = self.data.drop([ "cdc_report_dt", "pos_spec_dt", "current_status",
@@ -33,8 +37,8 @@ class Covid:
             ills.append(len(fr))
         new_data = pd.DataFrame({'Date': unique_dates, 'death_cnt': deaths, 'hosp_cnt': hosps, 'ill_cnt': ills})
         new_data = new_data.sort_values('Date')
-        new_data["Date"] = pd.to_datetime(new_data["Date"], format='%Y/%m/%d')
         self.data = new_data.copy()
+        # new_data.to_csv("./datasets/covid_clear.csv")
 
         # tmp draw
         # plt.plot(new_data['date'], new_data['death_cnt'], label='deathes')
