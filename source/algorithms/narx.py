@@ -58,8 +58,12 @@ class NARX:
             metrics='mae'
         )
 
-        narx_model.fit(x,y, epochs=self.epoch_cnt, validation_split=1-self.learn_size/len(self.data), verbose=0)
-        predicted = narx_model(x)
+        narx_model.fit(x[:self.learn_size],y[:self.learn_size], epochs=self.epoch_cnt, validation_split=0, verbose=0)
+        my_x = x.copy()
+        # delta = my_x[-1] - my_x[-2]
+        # for i in range(1, 30):
+        #     my_x = np.append(my_x, my_x[-1] + i * delta)
+        predicted = narx_model(my_x)
 
         new_data = self.data[["Ind"]].iloc[:len(predicted)]
         new_data.insert(1, "Data", predicted, True)

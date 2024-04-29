@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
-from statsmodels.tsa.arima.model import ARIMA 
+from statsmodels.tsa.arima.model import ARIMA
+from statsmodels.tsa.api import AutoReg
 from itertools import product
 import statsmodels.api as sm
 import scipy.stats as scs
@@ -12,7 +13,7 @@ from source.utils.dataload import loadConfig
 from source.utils.datameasure import DataMeasure
 from source.utils.out_data_table import OutDataTable
 
-from source.algorithms.narx import NARX
+# from source.algorithms.narx import NARX
 
 class Algos:
     def __init__(self, learn_size, namex, namey) -> None:
@@ -31,6 +32,39 @@ class Algos:
         self.namex = newx
         self.namey = newy
 
+    def snaive(self, yn, period = 2, name = 'Naive'):
+        y_pred = yn[yn.columns[1]][:self.learn_size]
+        # y_pred = pd.concat([yn[yn.columns[1]][:self.learn_size], 
+        #                    pd.Series([yn[yn.columns[1]].iloc[self.learn_size]] * (len(yn) - self.learn_size))])
+        for i in range(self.learn_size, len(yn)):
+            y_pred = pd.concat([y_pred, 
+                       pd.Series(y_pred.iloc[i - period + 1])])
+        metrics = self.dataMeasure.measurePredictions(yn[yn.columns[1]][self.learn_size:], y_pred[self.learn_size:len(yn)])
+        out_data = [name, period]
+        out_data.extend(metrics.values())
+        inds = self.outtbl.makeIndsArr(['name', 'period', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
+        self.outtbl.write()
+        if self.PLOTS_ON:
+            makePlot(yn['Date'], yn[yn.columns[1]], 
+                     y_pred, self.learn_size - 1,
+                     name, xname=self.namex, yname=self.namey)
+
+    def AR(self, y, p, name = 'Autoregressive'):
+        model = AutoReg(y[y.columns[1]][:self.learn_size], lags=p)
+        #y_pred = model.fit()
+        y_pred = model.fit().predict(start=y.index[0], end = y.index[-1], dynamic=False)
+        metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
+        out_data = [name, p]
+        out_data.extend(metrics.values())
+        inds = self.outtbl.makeIndsArr(['name', 'ar_p', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
+        self.outtbl.write()
+        if self.PLOTS_ON:
+            makePlot(y['Date'], y[y.columns[1]], 
+                     y_pred, self.learn_size - 1,
+                     name, xname=self.namex, yname=self.namey)
+
     def linearRegression(self, yn, pow, name = 'Linear regression'):
         x = np.array([yn['Date'].iloc[i].value for i in range(len(yn))])
         coefs = np.polyfit(x[:self.learn_size], yn[yn.columns[1]][:self.learn_size], pow)
@@ -43,7 +77,7 @@ class Algos:
         self.outtbl.write()
         if self.PLOTS_ON:
             makePlot(yn['Date'], yn[yn.columns[1]], 
-                     y_pred, self.learn_size,
+                     y_pred, self.learn_size - 1,
                      name, xname=self.namex, yname=self.namey)
 
     def movingAverage(self, yn, windowSize, func, funcparams, name):
@@ -112,7 +146,7 @@ class Algos:
         if self.PLOTS_ON:
             makePlot(y.index, y,
                     pred.predicted_mean,
-                    self.learn_size, name, pred_ci, xname=self.namex, yname=self.namey
+                    self.learn_size - 1, name, pred_ci, xname=self.namex, yname=self.namey
                     )
         return mymodel
 
@@ -185,7 +219,7 @@ class Algos:
 
         if self.PLOTS_ON:
             makePlot(y.index, y,
-                    pred.predicted_mean, self.learn_size,
+                    pred.predicted_mean, self.learn_size - 1,
                     name, pred_ci, xname=self.namex, yname=self.namey
                     )
 
@@ -202,5 +236,5 @@ class Algos:
         self.outtbl.write()
         if self.PLOTS_ON:
             makePlot(curdata['Date'].iloc[:len(y)], curdata[curdata.columns[-1]].iloc[:len(y)], 
-                     y, self.learn_size,
+                     y, self.learn_size - 1,
                      name, xname=self.namex , yname=self.namey)

@@ -1,4 +1,5 @@
 import matplotlib.pyplot as plt
+from statsmodels.graphics.tsaplots import plot_acf
 
 def makePlot(x, y, y_model, pred_ind, title='', pred_ci = None, xname = 'X', yname = 'Y'):
     plt.plot(x, y, label='input data')
@@ -20,4 +21,8 @@ def makePlot(x, y, y_model, pred_ind, title='', pred_ci = None, xname = 'X', yna
     plt.title(title)
     plt.xlabel(xname)
     plt.ylabel(yname)
+    plt.show()
+
+def autocorrelationPlot(y):
+    plot_acf(y)
     plt.show()

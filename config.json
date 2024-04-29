@@ -1,11 +1,11 @@
 {
     "column_names": [
-        "name", "lrpow", "movAvgWinSize", 
+        "name", "lrpow", "movAvgWinSize", "ar_p",
         "arima_p", "arima_d", "arima_q",
         "sarimax_p", "sarimax_d", "sarimax_q",
         "sarimax_P", "sarimax_D", "sarimax_Q", "period",
         "MAE", "MAPE", "MSE", "R2"
     ],
     "plot_out": true,
-    "measure_out": false
+    "measure_out": true
 }

@@ -13,6 +13,7 @@ import scipy.stats as scs
 import statsmodels.tsa.api as smt
 import statsmodels.api as sm
 from datetime import datetime
+from source.utils.plots import *
 
 PLOTS_ON = True
 
@@ -48,6 +49,7 @@ class PL:
     def analyzeLanguage(self, lang):
         data = self.data_all.loc[:, ["Date", lang]]
         contData = makeDataContinuous(data, 'Date', 'MS')
+        #autocorrelationPlot(data[lang])
         
         # #checkP(data[lang])
         # # tsplot(data[lang], lags=30)
@@ -75,12 +77,32 @@ class PL:
         # plt.legend()
         # plt.show()
         
-        linearCoefs = [3]#[i + 1 for i in range(10)]#[1,2,3,4,5,10]
-        # arimaCoefs = [[0, 4, 9]]#[[2, 10, 5], [2, 8, 1]]#[[5, 0, 1], [8, 1, 0], [1, 1, 1]] [[1, 3, 3]]
+        linearCoefs = [5, 3]#[i + 1 for i in range(10)]#[1,2,3,4,5,10]
+        arimaCoefs = [[1,1,1], [0, 4, 9]]#[[2, 10, 5], [2, 8, 1]]#[[5, 0, 1], [8, 1, 0], [1, 1, 1]] [[1, 3, 3]]
         # movingAverageCoefs = [1, 2, 4, 7]
-        sarimaxCoefs = [[0, 4, 9, 3, 0, 1, 25]]# [[0, 4, 9, 3, 0, 1, 20]] [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
-        for lc in linearCoefs:
-            self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
+        sarimaxCoefs = [[0, 4, 9, 1, 1, 1, 10], [0, 4, 9, 3, 0, 1, 25]]# [[0, 4, 9, 3, 0, 1, 20]] [[3, 2, 0], [8, 1, 0], [1, 1, 1]]
+
+        # for i in [3, 13]:#range(2, 14):
+        #     try:
+        #         print(i)
+        #         self.algos.AR(data[['Date', lang]], i, f"Autoregressive model with parameter {i}")
+        #         #self.algos.arima(contData, [i, 0, 0], f'ARIMA with p = {i}, d = 0, q = 0')
+        #     except Exception as e:
+        #         print(f"Error for period {i}: {str(e)}")
+        #         continue
+        
+        #self.algos.AR(data[['Date', lang]], 2, f"Autoregressive model with parameter {2}")
+
+        for i in [2]:#range(2, self.algos.learn_size):
+            try:
+                print(i)
+                self.algos.snaive(data[['Date', lang]], i, f'Seasonal navie model with period {i}')
+            except Exception as e:
+                print(f"Error for period {i}: {str(e)}")
+                continue
+
+        # for lc in linearCoefs:
+        #     self.algos.linearRegression(data[['Date', lang]], lc, f'Linear regression with degree = {lc}')
 
         # for lc in linearCoefs:
         #     for mac in movingAverageCoefs:
@@ -97,8 +119,8 @@ class PL:
         #     self.algos.sarimax(contData, sc, f'SARIMAX with p = {sc[0]}, d = {sc[1]}, q = {sc[2]}')
         # coefs = self.algos.findARIMACoefs(contData, [0, 11], [0, 11], [0, 11], printFlag=True)
         # coefs.to_excel('pl_coefs_arima.xlsx')
-        for i in range(2):
-            self.algos.narx(data, [2, 100, 1000])
-            print(i)
+        # for i in range(150):
+        #     self.algos.narx(data, [2, 100, 1000])
+        #     print(i)
         #coefs = self.algos.findSARIMAXCoefs(contData, [0, 1], [4, 5], [9, 10], [0, 1], [0, 1], [0, 1], [20, 21], printFlag=True)
         self.algos.outtbl.save()
