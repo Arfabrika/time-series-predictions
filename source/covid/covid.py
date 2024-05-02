@@ -18,9 +18,9 @@ class Covid:
     def filterData(self):
         self.data = self.data.drop([ "cdc_report_dt", "pos_spec_dt", "current_status",
                         "cdc_case_earliest_dt ", "age_group", 'medcond_yn', 'sex', 'race_ethnicity_combined' ], axis=1)
-        self.data = self.data.loc[(self.data['hosp_yn'] != 'Missing') & (self.data['hosp_yn'] != 'Unknown')]
-        self.data = self.data.loc[(self.data['icu_yn'] != 'Missing') & (self.data['icu_yn'] != 'Unknown')]
-        self.data = self.data.loc[(self.data['death_yn'] != 'Missing') & (self.data['death_yn'] != 'Unknown')]
+        #self.data = self.data.loc[(self.data['hosp_yn'] != 'Missing') & (self.data['hosp_yn'] != 'Unknown')]
+        #self.data = self.data.loc[(self.data['icu_yn'] != 'Missing') & (self.data['icu_yn'] != 'Unknown')]
+        #self.data = self.data.loc[(self.data['death_yn'] != 'Missing') & (self.data['death_yn'] != 'Unknown')]
         #self.data = self.data.loc[(self.data['medcond_yn'] != 'Missing') & (self.data['medcond_yn'] != 'Unknown')]
         self.data = self.data.dropna()
     
@@ -38,7 +38,7 @@ class Covid:
         new_data = pd.DataFrame({'Date': unique_dates, 'death_cnt': deaths, 'hosp_cnt': hosps, 'ill_cnt': ills})
         new_data = new_data.sort_values('Date')
         self.data = new_data.copy()
-        # new_data.to_csv("./datasets/covid_clear.csv")
+        new_data.to_csv("./datasets/covid_clear.csv")
 
         # tmp draw
         # plt.plot(new_data['date'], new_data['death_cnt'], label='deathes')

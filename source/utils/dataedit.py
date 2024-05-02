@@ -1,7 +1,14 @@
 import pandas as pd
+from datetime import timedelta
 
-def makeDataContinuous(data, indexColumn, freq):
-    idx = pd.date_range(data[indexColumn].iloc[0], data[indexColumn].iloc[-1], freq=freq)
+def makeDataContinuous(data, indexColumn):
+    freq = abs(data[indexColumn].iloc[1] - data[indexColumn].iloc[0])
+    if freq in [timedelta(days=31), timedelta(days=30), timedelta(days=29), timedelta(days=28)]:
+        freq = 'MS'
+    idx = pd.date_range(data[indexColumn].iloc[0],
+                        data[indexColumn].iloc[-1],
+                        freq=freq)
+   
     yn = makeDateItemData(data)
     yn.index = pd.DatetimeIndex(yn.index)
     yn = yn.reindex(idx, fill_value=0)
