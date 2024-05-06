@@ -30,6 +30,6 @@ def makeAlgoData():
         #     "params": [0, 4, 9, 3, 0, 1, 25]
         # }
          "narx": {
-            "params": [5, 100, 100]
+            "params": [2, 2, 42, 100, 1000]
         }
     }

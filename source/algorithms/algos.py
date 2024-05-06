@@ -292,7 +292,7 @@ class Algos:
         curdata = data.copy(deep=True)
         narx = NARX(curdata, params, window_params)
         y = narx.predict()
-        metrics = self.dataMeasure.measurePredictions(curdata.iloc[:, [-1]].iloc[self.learn_size:len(data) - params[0]],
+        metrics = self.dataMeasure.measurePredictions(curdata.iloc[:, [-1]].iloc[self.learn_size:],
                                                       y[self.learn_size - window_params["start_pos"]:])
         out_data = [name]
         out_data.extend(metrics.values())
@@ -300,8 +300,8 @@ class Algos:
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:
-            plot = makePlot(data['Date'][:len(data) - params[0]],
-                     data[data.columns[-1]][:len(data) - params[0]], 
+            plot = makePlot(data['Date'],
+                     data[data.columns[-1]], 
                      y, self.learn_size - 1,
                      name=name, xname=self.namex, yname=self.namey,
                      start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1)
