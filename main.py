@@ -3,8 +3,8 @@ from source.service import Session
 
 def mainfunc():
     learnSize = 0.7
-    #inputData = makeData("./datasets/programming languages.csv", "Rust", True)
-    inputData = makeData("./datasets/covid_clear.csv", "ill_cnt", False)
+    inputData = makeData("./datasets/programming languages.csv", "Rust", True)
+    #inputData = makeData("./datasets/covid_clear.csv", "ill_cnt", False)
     session = Session(inputData, learnSize)
 
     algos = makeAlgoData()

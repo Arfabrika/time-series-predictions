@@ -181,8 +181,9 @@ class Algos:
         pred = modelfit.get_prediction(start = y_cont.index[window_params["start_pos"]],
                                        end = y_cont.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
-        forecasted = pred.predicted_mean[self.learn_size - window_params["start_pos"]:len(y)]
-        metrics = self.dataMeasure.measurePredictions(y_cont[self.learn_size:], forecasted)
+        forecasted = pred.predicted_mean
+        metrics = self.dataMeasure.measurePredictions(y_cont[self.learn_size:],
+                                                      forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
         out_data = [name]
@@ -258,8 +259,9 @@ class Algos:
         pred = modelfit.get_prediction(start = y_cont.index[window_params["start_pos"]],
                                        end = y_cont.index[-1], dynamic=False)
         pred_ci = pred.conf_int()
-        forecasted = pred.predicted_mean[self.learn_size - window_params["start_pos"]:len(y)]
-        metrics = self.dataMeasure.measurePredictions(y_cont[self.learn_size:], forecasted)
+        forecasted = pred.predicted_mean
+        metrics = self.dataMeasure.measurePredictions(y_cont[self.learn_size:],
+                                                      forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
         out_data = [name]
@@ -308,6 +310,28 @@ class Algos:
         return {
             # y here - list
             "pred": y,
+            "metrics": metrics,
+            "plot": None if not self.PLOTS_ON else plot
+        }
+
+
+    def averange(self, data, algdata, name='Averange from used algorithms'):
+        df = pd.DataFrame(algdata)
+        y = df.mean()
+        metrics = self.dataMeasure.measurePredictions(data.iloc[:, [-1]].iloc[self.learn_size:], y)
+        out_data = [name]
+        out_data.extend(metrics.values())
+        inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE', 'R2'])
+        self.outtbl.add(out_data, inds)
+        self.outtbl.write()
+        if self.PLOTS_ON:
+            plot = makePlot(data['Date'],
+                     data[data.columns[-1]], 
+                     y, self.learn_size,
+                     name=name, xname=self.namex, yname=self.namey,
+                     start_ind = 0, stop_ind = self.learn_size, only_predict=True)
+        return {
+            "pred": y.to_list(),
             "metrics": metrics,
             "plot": None if not self.PLOTS_ON else plot
         }
