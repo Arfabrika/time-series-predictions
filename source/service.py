@@ -17,10 +17,12 @@ class Session:
         algos = inputData.get("algos", {})
 
         for algo_name, algo_params in algos.items():
-            if algo_params.get("params", None) is None:
-                print("No params, autochoice (in future)")
-                continue
-            
+            params = algo_params.get("params", None)
+            if params is None:
+                params_list = self.algos.makeParamsList(algo_name, len(self.data) - self.learn_size)
+            else:
+                params_list = [params]
+
             # Поиск оптимального размера окна и его местоположения
             # TODO предоставить пользователю выбор из реализованных метрик
             best_result = {"metrics": {"MSE": float("inf")}}
@@ -33,33 +35,54 @@ class Session:
             window_params = algo_params.get("window_params", {})
 
             # Проверка на наличие пользовательского обучающего интервала
-            if len(window_params) > 0:
-                best_result = cur_algo(self.data, algo_params["params"], window_params = window_params)
-                best_win_params = window_params
-            else:
-                if not algo_params.get("fullTrain", False):
-                    for window_size in range(int(len(self.data) * 0.1), self.learn_size, 2):
-                        for start_pos in range(0, self.learn_size - window_size, window_size):
-                            window_params = {
-                                "start_pos": start_pos,
-                                "stop_pos": start_pos + window_size
-                            }
-                            cur_result = cur_algo(self.data, algo_params["params"], window_params = window_params)
-                            print(f"Windows params are: size = {window_size}; {window_params['start_pos']} - {window_params['stop_pos']}")
-                            if cur_result["metrics"]["MSE"] < best_result["metrics"]["MSE"]:
-                                best_result = cur_result
-                                best_win_params = window_params
+            for params in params_list:
+                if len(window_params) > 0:
+                    try:
+                        cur_result = cur_algo(self.data, params, window_params = window_params)
+                    except Exception as e:
+                        print(f"Error: {str(e)}")
+                        cur_result = {"metrics": {"MSE": float("inf")}}
+                    if cur_result["metrics"]["MSE"] < best_result["metrics"]["MSE"]:
+                        best_result = cur_result
+                        best_win_params = window_params
+                        best_algo_params = params
+                else:
+                    if not algo_params.get("fullTrain", False):
+                        for window_size in range(int(len(self.data) * 0.1), self.learn_size, 2):
+                            for start_pos in range(0, self.learn_size - window_size, window_size):
+                                window_params = {
+                                    "start_pos": start_pos,
+                                    "stop_pos": start_pos + window_size
+                                }
+                                print(f"Model params in win: {params}, Windows params are: size = {window_size}; {window_params['start_pos']} - {window_params['stop_pos']}")
+                                try:
+                                    cur_result = cur_algo(self.data, params, window_params = window_params)
+                                except Exception as e:
+                                    print(f"Error: {str(e)}")
+                                    cur_result = {"metrics": {"MSE": float("inf")}}
 
-                # Проверка алгоритма на всем временном ряду
-                cur_result = cur_algo(self.data, algo_params["params"])
-                print(f"Windows params are: size = {self.learn_size}")
-                if cur_result["metrics"]["MSE"] < best_result["metrics"]["MSE"]:
-                    best_result = cur_result
-                    best_win_params = {"start_pos": 0, "stop_pos": self.algos.learn_size}
+                                if cur_result["metrics"]["MSE"] < best_result["metrics"]["MSE"]:
+                                    best_result = cur_result
+                                    best_win_params = window_params
+                                    best_algo_params = params
 
+                    # Проверка алгоритма на всем временном ряду
+                    print(f"Windows params are: size = {self.learn_size}")
+                    print(f"Model params in full: {params}")
+                    try:
+                        cur_result = cur_algo(self.data, params, window_params={})
+                    except Exception as e:
+                        print(f"Error: {str(e)}")
+                        cur_result = {"metrics": {"MSE": float("inf")}}
+                    if cur_result["metrics"]["MSE"] < best_result["metrics"]["MSE"]:
+                        best_result = cur_result
+                        best_win_params = {"start_pos": 0, "stop_pos": self.algos.learn_size}
+                        best_algo_params = params
+                    window_params = {}
             # Сохранение лучшего результата внутри алгоритма
             result.append(best_result)
             print("Best window params", best_win_params)
+            print("Best algo params:", best_algo_params)
 
             # Поиск лучшего алгоритма - вынести логику поиска лучшего на фронт?
             # if best_result["metrics"]["MSE"] < total_best_result["metrics"]["MSE"]:
@@ -74,6 +97,7 @@ class Session:
                 algdata.append(res['pred'][self.algos.learn_size:])
             cur_result = self.algos.averange(self.data, algdata)
 
+        self.algos.outtbl.save()
         return result
         # return {
         #     "result": result,

@@ -1,15 +1,13 @@
 from source.utils.dataload import loadData
 import pandas as pd
-from datetime import datetime
 
-def makeData(path, param, isPL):
+def makeData(path, param, isMetro = True):
     data_all = loadData(path)
 
-    if isPL:
-        for i in range(len(data_all["Date"])):
-            data_all.loc[i, "Date"] = pd.to_datetime(datetime.strptime(data_all["Date"].iloc[i], '%B %Y'))
+    if isMetro:
+         data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y-%m-%d')
     else:
-         data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y/%m/%d')
+         raise NotImplementedError()
     return data_all[["Date", param]]
 
 """
@@ -30,26 +28,37 @@ def makeData(path, param, isPL):
 """
 def makeAlgoData():
     return {
-        "needAvg": True,
+        #"needAvg": True,
         "algos": {
             # "snaive": {
             #     "params": [2],
-            #     "fullTrain": True
+            #     "window_params": {
+            #         "start_pos": 363,
+            #         "stop_pos": 726
+            #     }
+            #     #"fullTrain": True
             # },
             # "AR": {
             #     "params": [3],
-            #     "fullTrain": True
+            #     # "fullTrain": True
             # },
-            "linearRegression": {
-                "params": [4],
-                "fullTrain": True
-            },
+            # "linearRegression": {
+            #     "params": [2],
+            #     "window_params": {
+            #         "start_pos": 0,
+            #         "stop_pos": 517
+            #     }
+            # },
             # "arima": {
             #     "params": [0, 4, 9],
-            #     "fullTrain": True
+            #     # "fullTrain": True
+            #     "window_params": {
+            #         "start_pos": 0,
+            #         "stop_pos": 749
+            #     }
             # },
             #  "sarimax": {
-            #     "params": [0, 4, 9, 3, 0, 1, 25],
+            #     "params": [1, 1, 1, 1, 1, 1, 10],
             #     "fullTrain": True
             # },
             "narx": {

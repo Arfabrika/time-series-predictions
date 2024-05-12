@@ -1,11 +1,8 @@
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.arima.model import ARIMA
-from statsmodels.tsa.api import AutoReg
+from statsmodels.tsa.api import AutoReg, SARIMAX
 from itertools import product
-import statsmodels.api as sm
-import scipy.stats as scs
-from tqdm import tqdm
 import warnings
 
 from source.utils.plots import makePlot
@@ -27,12 +24,24 @@ class Algos:
         self.dataMeasure = DataMeasure(config_data["measure_out"])
         columnNames = config_data["column_names"]
         self.outtbl = OutDataTable(columnNames, 'algorithms.xlsx', 'MSE')
+        self.limits = config_data.get("limits", {})
         warnings.filterwarnings("ignore")
 
 
     def changeAxisNames(self, newx, newy):
         self.namex = newx
         self.namey = newy
+
+
+    def makeParamsList(self, algo_name, maxlen):
+        cur_limits = self.limits.get(algo_name, {})
+        iter_list = []
+        for limit in cur_limits:
+            start = limit["start"]
+            end = maxlen if limit['stop'] == 'len' else limit['stop']
+            step = limit.get("step", 1)
+            iter_list.append(range(start, end, step))
+        return list(product(*iter_list))
 
 
     def snaive(self, y, params = [2], name = 'Naive', window_params = {}):
@@ -49,9 +58,10 @@ class Algos:
 
         y_pred = y_pred.fillna(0)
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, period]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"], period]
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'period', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        'naive_period', 'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:
@@ -76,9 +86,10 @@ class Algos:
         y_pred = model.fit().predict(start=y.index[0], end = y.index[-1], dynamic=False).fillna(0)
 
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, p]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"], p]
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'ar_p', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        'AR_p', 'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:
@@ -105,9 +116,10 @@ class Algos:
                            pow)
         y_pred = np.polyval(coefs, x)
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, pow]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"], pow]
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'lrpow', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        'lr_pow', 'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:
@@ -132,44 +144,7 @@ class Algos:
         func(newData, funcparams,  name + f' with moving average, window size = {windowSize}')
 
 
-    def findARIMACoefs(self, y, p_lims, d_lims, q_lims, printFlag = False):
-        p = range(p_lims[0], p_lims[1])
-        d = range(d_lims[0], d_lims[1])
-        q = range(q_lims[0], q_lims[1])
-
-        parameters = product(p, d, q)
-        parameters_list = list(parameters)
-        results = []
-        best_aic = float("inf")
-
-        for param in parameters_list:
-            if printFlag:
-                print(f"{param} in progress")
-            #try except нужен, потому что на некоторых наборах параметров модель не обучается
-            try:
-                mdl = self.arima(y, param)
-                model = mdl.fit()
-            #выводим параметры, на которых модель не обучается и переходим к следующему набору
-            except Exception:
-                print('wrong parameters:', param)
-                continue
-            aic = model.aic
-            #сохраняем лучшую модель, aic, параметры
-            if aic < best_aic:
-                best_aic = aic
-                best_param = param
-            results.append([param, model.aic])
-        result_table = pd.DataFrame(results)
-        result_table.columns = ['parameters', 'aic']
-        if printFlag:
-            print(f'---\nBest is {best_param}\n---')
-            print(result_table.sort_values(by = 'aic', ascending=True).head())
-        return result_table
-
-
     def arima(self, y, coefs, name='ARIMA', window_params = {}):
-        # 8 1 0 - alg
-        # 5 0 1 - myself
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -186,10 +161,11 @@ class Algos:
                                                       forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
-        out_data = [name]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"]]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'arima_p', 'arima_d', 'arima_q', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        'arima_p', 'arima_d', 'arima_q', 'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds) 
         self.outtbl.write()
 
@@ -206,44 +182,6 @@ class Algos:
         }
 
 
-    def findSARIMAXCoefs(self, y, p_lims, d_lims, q_lims, ps_lims, ds_lims, qs_lims, period_lims, printFlag = False):
-        p = range(p_lims[0], p_lims[1])
-        d = range(d_lims[0], d_lims[1])
-        q = range(q_lims[0], q_lims[1])
-        ps = range(ps_lims[0], ps_lims[1])
-        ds = range(ds_lims[0], ds_lims[1])
-        qs = range(qs_lims[0], qs_lims[1])
-        period = range(period_lims[0], period_lims[1])
-
-        parameters = product(p, d, q, ps, ds, qs, period)
-        parameters_list = list(parameters)
-        results = []
-        best_aic = float("inf")
-
-        for param in parameters_list:
-            if printFlag:
-                print(f"{param} in progress")
-            #try except нужен, потому что на некоторых наборах параметров модель не обучается
-            try:
-                model=sm.tsa.statespace.SARIMAX(y, order=(param[0], param[1], param[2]), 
-                                                 seasonal_order=(param[3], param[4], param[5], param[6])).fit(disp=-1)
-            #выводим параметры, на которых модель не обучается и переходим к следующему набору
-            except Exception:
-                print('wrong parameters:', param)
-                continue
-            aic = model.aic
-            #сохраняем лучшую модель, aic, параметры
-            if aic < best_aic:
-                best_aic = aic
-                best_param = param
-            results.append([param, model.aic])
-        result_table = pd.DataFrame(results)
-        result_table.columns = ['parameters', 'aic']
-        if printFlag:
-            print(f'---\nBest is {best_param}\n---')
-            print(result_table.sort_values(by = 'aic', ascending=True).head())
-
-
     def sarimax(self, y, coefs, name='SARIMAX', window_params = {}):
         import warnings
         warnings.filterwarnings("ignore")
@@ -252,7 +190,7 @@ class Algos:
             window_params["stop_pos"] = self.learn_size
 
         y_cont = makeDataContinuous(y, 'Date')
-        mymodel = sm.tsa.statespace.SARIMAX(y_cont[window_params["start_pos"]:window_params["stop_pos"]],
+        mymodel = SARIMAX(y_cont[window_params["start_pos"]:window_params["stop_pos"]],
                                             order =(coefs[0], coefs[1], coefs[2]),
                                             seasonal_order=(coefs[3], coefs[4], coefs[5], coefs[6]))
         modelfit = mymodel.fit(disp=-1)
@@ -264,12 +202,13 @@ class Algos:
                                                       forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
-        out_data = [name]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"]]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'sarimax_p', 'sarimax_d', 'sarimax_q',
-                                        'sarimax_P', 'sarimax_D', 'sarimax_Q', 'period',
-                                         'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        'sarimax_p', 'sarimax_d', 'sarimax_q',
+                                        'sarimax_P', 'sarimax_D', 'sarimax_Q', 'sarimax_period',
+                                        'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
 
@@ -296,9 +235,12 @@ class Algos:
         y = narx.predict()
         metrics = self.dataMeasure.measurePredictions(curdata.iloc[:, [-1]].iloc[self.learn_size:],
                                                       y[self.learn_size - window_params["start_pos"]:])
-        out_data = [name]
+        out_data = [name, window_params["start_pos"], window_params["stop_pos"]]
+        out_data.extend(params)
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
+                                        "NARX_lay_cnt", "NARX_degree", "NARX_neiron_cnt", "NARX_epoch_cnt", "NARX_data_shift",
+                                        'MAE', 'MAPE', 'MSE', 'R2'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
         if self.PLOTS_ON:

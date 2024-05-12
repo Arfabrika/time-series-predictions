@@ -1,11 +1,101 @@
 {
     "column_names": [
-        "name", "lrpow", "movAvgWinSize", "ar_p",
+        "name", "learn_start_ind", "learn_stop_ind",
+        "naive_period", "AR_p", "lr_pow", "movAvg_WinSize",
         "arima_p", "arima_d", "arima_q",
         "sarimax_p", "sarimax_d", "sarimax_q",
-        "sarimax_P", "sarimax_D", "sarimax_Q", "period",
+        "sarimax_P", "sarimax_D", "sarimax_Q", "sarimax_period",
+        "NARX_lay_cnt", "NARX_degree", "NARX_neiron_cnt", "NARX_epoch_cnt", "NARX_data_shift",
         "MAE", "MAPE", "MSE", "R2"
     ],
-    "plot_out": true,
-    "measure_out": true
+    "plot_out": false,
+    "measure_out": true,
+    "limits": {
+        "snaive": [
+            {
+                "start": 2,
+                "stop": "len"
+            }
+        ],
+        "AR": [
+            {
+                "start": 2,
+                "stop": "len"
+            }
+        ],
+        "linearRegression": [
+            {
+                "start": 2,
+                "stop": 16
+            }
+        ],
+        "arima": [
+            {
+                "start": 0,
+                "stop": 3
+            },
+            {
+                "start": 0,
+                "stop": 3
+            },
+            {
+                "start": 0,
+                "stop": 3
+            }
+        ],
+        "sarimax": [
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 4
+            },
+            {
+                "start": 0,
+                "stop": 40,
+                "step": 2
+            }
+        ],
+        "narx": [
+            {
+                "start": 1,
+                "stop": 5
+            },
+            {
+                "start": 1,
+                "stop": 5
+            },
+            {
+                "start": 10,
+                "stop": 100,
+                "step": 2
+            }
+        ]
+    }
 }

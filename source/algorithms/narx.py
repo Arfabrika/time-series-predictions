@@ -1,8 +1,6 @@
 from torch import nn
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.metrics import mean_squared_error
 from sysidentpy.neural_network import NARXNN
 from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
@@ -19,6 +17,7 @@ def makeData(path, param, isPL):
          data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y/%m/%d')
     return data_all[["Date", param]]
 
+
 class Model(nn.Module):
     def __init__(self, params, input_size):
         super().__init__()
@@ -29,6 +28,7 @@ class Model(nn.Module):
         lay_arr.append(nn.Linear(params[2], 1))
         self.lay_arr = nn.ModuleList(lay_arr)
         self.tanh = nn.Tanh()
+
 
     def forward(self, xb):
         z = self.lay_arr[0](xb)
@@ -55,7 +55,8 @@ class NARX:
         self.basis_function=Polynomial(degree=params[1])
         self.startpos = window_params["start_pos"]
         self.stoppos = window_params["stop_pos"]
-    
+
+
     def predict(self):
         scaler = MinMaxScaler()
         scaler.fit(self.inddata)
@@ -70,7 +71,7 @@ class NARX:
 
         arr_x = np.array(arr_x)
         arr_y = np.array(arr_y)
-        
+
         regressors = regressor_code(
             X=arr_x[self.startpos:self.stoppos],
             xlag=2,
