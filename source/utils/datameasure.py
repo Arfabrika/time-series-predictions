@@ -1,4 +1,4 @@
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score, mean_absolute_percentage_error
+from sklearn.metrics import mean_absolute_error, mean_squared_error, mean_absolute_percentage_error
 
 class DataMeasure:
     def __init__(self, consoleFlag = True, roundFlag = True) -> None:
@@ -16,9 +16,6 @@ class DataMeasure:
 
         MSE = mean_squared_error(y, y_pred)
         metrics['MSE'] = MSE
-
-        R2 = r2_score(y, y_pred)
-        metrics['R2'] = R2
 
         if self.consoleFlag:
             print(metrics)

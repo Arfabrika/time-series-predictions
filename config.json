@@ -6,9 +6,8 @@
         "sarimax_p", "sarimax_d", "sarimax_q",
         "sarimax_P", "sarimax_D", "sarimax_Q", "sarimax_period",
         "NARX_lay_cnt", "NARX_degree", "NARX_neiron_cnt", "NARX_epoch_cnt", "NARX_data_shift",
-        "MAE", "MAPE", "MSE", "R2"
+        "MAE", "MAPE", "MSE"
     ],
-    "plot_out": false,
     "measure_out": true,
     "limits": {
         "snaive": [

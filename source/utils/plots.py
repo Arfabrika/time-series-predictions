@@ -22,7 +22,7 @@ def makePlot(x, y, y_model, pred_ind, pred_ci = None, **kwargs):
         plt.plot(x[pred_ind:], y_model, label='prediction')
     plt.axvline(x = x[x == x[pred_ind]], label = 'test border', color='r')
     plt.vlines([x[x == x[stop_ind]], x[x == x[start_ind]]], ymin=min(y) // 2,
-               ymax=max(y) * 1.3, color='y', label = 'learn border')
+               ymax=max(y) * 1.3, color='y', label = 'learn border', linestyle='dashed')
     #plt.scatter(x, y, label='input data points')
     if pred_ci is not None:
         plt.fill_between(pred_ci.index,

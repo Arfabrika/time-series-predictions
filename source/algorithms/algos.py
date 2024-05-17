@@ -19,7 +19,6 @@ class Algos:
         self.namex = namex
         self.namey = namey
         config_data = loadConfig('./config.json')
-        self.PLOTS_ON = config_data["plot_out"]
 
         self.dataMeasure = DataMeasure(config_data["measure_out"])
         columnNames = config_data["column_names"]
@@ -44,15 +43,18 @@ class Algos:
         return list(product(*iter_list))
 
 
-    def snaive(self, y, params = [2], name = 'Naive', window_params = {}):
+    def snaive(self, y, params, **kwargs):
         period = params[0]
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "snaive")
+        isPlot = kwargs.get("isPlot", False)
         if not window_params:
-            window_params["start_pos"] = self.learn_size - period + 1
+            window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
-        y_pred = y[y.columns[1]][:self.learn_size]
-        used_interval = y_pred[window_params["start_pos"]:window_params["stop_pos"]]
+        y_pred = y[y.columns[1]][:window_params["stop_pos"]]
+        used_interval = y_pred[window_params["stop_pos"] - period:window_params["stop_pos"]]
 
-        for i in range(self.learn_size, len(y)):
+        for i in range(window_params["stop_pos"], len(y)):
             y_pred = pd.concat([y_pred, 
                        pd.Series(used_interval.iloc[(i % len(used_interval)) - period + 1])])
 
@@ -61,10 +63,10 @@ class Algos:
         out_data = [name, window_params["start_pos"], window_params["stop_pos"], period]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
-                                        'naive_period', 'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'naive_period', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(y['Date'], y[y.columns[1]], 
                      y_pred[window_params["start_pos"]:], self.learn_size - 1,
                      name=name, xname=self.namex, yname=self.namey,
@@ -73,12 +75,15 @@ class Algos:
         return {
             "pred": y_pred.to_list(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def AR(self, y, params, name = 'Autoregressive', window_params = {}):
+    def AR(self, y, params, **kwargs):
         p = params[0]
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "Autoregressive")
+        isPlot = kwargs.get("isPlot", False)
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -89,10 +94,10 @@ class Algos:
         out_data = [name, window_params["start_pos"], window_params["stop_pos"], p]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
-                                        'AR_p', 'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'AR_p', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(y['Date'], y[y.columns[1]], 
                      y_pred[window_params["start_pos"]:], self.learn_size - 1,
                      name=name, xname=self.namex, yname=self.namey,
@@ -101,12 +106,15 @@ class Algos:
         return {
             "pred": y_pred.to_list(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def linearRegression(self, y, params, name = 'Linear regression', window_params = {}):
+    def linearRegression(self, y, params, **kwargs):
         pow = params[0]
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "Autoregressive")
+        isPlot = kwargs.get("isPlot", False)
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -119,10 +127,10 @@ class Algos:
         out_data = [name, window_params["start_pos"], window_params["stop_pos"], pow]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
-                                        'lr_pow', 'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'lr_pow', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(y['Date'], y[y.columns[1]], 
                      y_pred[window_params["start_pos"]:], self.learn_size - 1,
                      name=name, xname=self.namex, yname=self.namey,
@@ -130,21 +138,27 @@ class Algos:
         return {
             "pred": y_pred.tolist(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def movingAverage(self, yn, windowSize, func, funcparams, name):
-        column = yn[yn.columns[1]] if type(yn) == pd.DataFrame else yn
+    def movingAverage(self, y, params, func, funcparams, **kwargs):
+        windowSize = params[0]
+        kwargs['name'] = kwargs['name'] + f' with moving average, window size = {windowSize}'
+        column = y[y.columns[1]]
         y_pred = column.rolling(window=windowSize).mean()
         for i in range(windowSize - 1):
             y_pred.iloc[i] = column.iloc[i]
-        newData = (pd.concat([yn['Date'], y_pred], axis=1) if type(yn) == pd.DataFrame else y_pred)
-        self.outtbl.add([windowSize], self.outtbl.makeIndsArr(['movAvgWinSize']))
-        func(newData, funcparams,  name + f' with moving average, window size = {windowSize}')
+        newData = pd.concat([y['Date'], y_pred], axis=1)
+        self.outtbl.add([windowSize], self.outtbl.makeIndsArr(['movAvg_WinSize']))
+        return func(newData, funcparams, **kwargs)
 
 
-    def arima(self, y, coefs, name='ARIMA', window_params = {}):
+    def arima(self, y, coefs, **kwargs):
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "ARIMA")
+        isPlot = kwargs.get("isPlot", False)
+
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -165,7 +179,7 @@ class Algos:
         out_data.extend(coefs)
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
-                                        'arima_p', 'arima_d', 'arima_q', 'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'arima_p', 'arima_d', 'arima_q', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds) 
         self.outtbl.write()
 
@@ -178,13 +192,18 @@ class Algos:
         return {
             "pred": forecasted.tolist(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def sarimax(self, y, coefs, name='SARIMAX', window_params = {}):
+    def sarimax(self, y, coefs, **kwargs):
         import warnings
         warnings.filterwarnings("ignore")
+
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "SARIMAX")
+        isPlot = kwargs.get("isPlot", False)
+
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -208,11 +227,11 @@ class Algos:
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
                                         'sarimax_p', 'sarimax_d', 'sarimax_q',
                                         'sarimax_P', 'sarimax_D', 'sarimax_Q', 'sarimax_period',
-                                        'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
 
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(y_cont.index, y_cont,
                     pred.predicted_mean, self.learn_size - 1,
                     pred_ci, name=name, xname=self.namex, yname=self.namey,
@@ -222,11 +241,15 @@ class Algos:
         return {
             "pred": forecasted.tolist(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def narx(self, data, params, name = 'NARX', window_params = {}):
+    def narx(self, data, params, **kwargs):
+        window_params = kwargs.get("window_params", None)
+        name = kwargs.get("name", "Autoregressive")
+        isPlot = kwargs.get("isPlot", False)
+
         if not window_params:
             window_params["start_pos"] = 0
             window_params["stop_pos"] = self.learn_size
@@ -240,10 +263,10 @@ class Algos:
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
                                         "NARX_lay_cnt", "NARX_degree", "NARX_neiron_cnt", "NARX_epoch_cnt", "NARX_data_shift",
-                                        'MAE', 'MAPE', 'MSE', 'R2'])
+                                        'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(data['Date'],
                      data[data.columns[-1]], 
                      y, self.learn_size - 1,
@@ -253,20 +276,23 @@ class Algos:
             # y here - list
             "pred": y,
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
 
 
-    def averange(self, data, algdata, name='Averange from used algorithms'):
+    def averange(self, data, algdata, **kwargs):
+        name = kwargs.get("name", "Averange from used algorithms")
+        isPlot = kwargs.get("isPlot", True)
+
         df = pd.DataFrame(algdata)
         y = df.mean()
         metrics = self.dataMeasure.measurePredictions(data.iloc[:, [-1]].iloc[self.learn_size:], y)
         out_data = [name]
         out_data.extend(metrics.values())
-        inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE', 'R2'])
+        inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
         self.outtbl.write()
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(data['Date'],
                      data[data.columns[-1]], 
                      y, self.learn_size,
@@ -275,5 +301,5 @@ class Algos:
         return {
             "pred": y.to_list(),
             "metrics": metrics,
-            "plot": None if not self.PLOTS_ON else plot
+            "plot": None if not isPlot else plot
         }
