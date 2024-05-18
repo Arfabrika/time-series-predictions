@@ -20,35 +20,3 @@ def makeDateItemData(y):
     yn.set_index(keys='Date', drop=True, inplace=True)
     yn = yn.squeeze(axis=1).dropna()
     return yn
-
-
-def fillAlgoParams(isStat, isPlot):
-    if isStat:
-        return {
-            "snaive": {
-                "isPlot": isPlot,
-            },
-            "AR": {
-                "isPlot": isPlot,
-            },
-            "linearRegression": {
-               "isPlot": isPlot,
-            },
-            "arima": {
-                "isPlot": isPlot,
-            },
-             "sarimax": {
-                "isPlot": isPlot,
-            }
-        }
-    return {
-            "arima": {
-                "isPlot": isPlot,
-            },
-            #  "sarimax": {
-            #     "isPlot": isPlot,
-            # },
-            # "narx": {
-            #     "isPlot": isPlot,
-            # }
-    }

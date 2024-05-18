@@ -33,6 +33,8 @@ def makeData(path, param, isMetro = True):
 def makeAlgoData():
     return {
         "needAvg": True,
+        "learnSize": 0.7,
+        "data": [],
         # "needAutoChoice": True,
         "algos": {
             "snaive": {
