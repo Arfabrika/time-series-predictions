@@ -46,7 +46,7 @@ class Algos:
     def snaive(self, y, params, **kwargs):
         period = params[0]
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "snaive")
+        name = f"Seasonal naive, period {period}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
         if not window_params:
             window_params["start_pos"] = 0
@@ -60,7 +60,7 @@ class Algos:
 
         y_pred = y_pred.fillna(0)
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, window_params["start_pos"], window_params["stop_pos"], period]
+        out_data = ["Seasonal naive", window_params["start_pos"], window_params["stop_pos"], period]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
                                         'naive_period', 'MAE', 'MAPE', 'MSE'])
@@ -82,7 +82,7 @@ class Algos:
     def AR(self, y, params, **kwargs):
         p = params[0]
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "Autoregressive")
+        name = f"Autoregression, parameter: {p}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
         if not window_params:
             window_params["start_pos"] = 0
@@ -91,7 +91,7 @@ class Algos:
         y_pred = model.fit().predict(start=y.index[0], end = y.index[-1], dynamic=False).fillna(0)
 
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, window_params["start_pos"], window_params["stop_pos"], p]
+        out_data = ['Autoregression', window_params["start_pos"], window_params["stop_pos"], p]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
                                         'AR_p', 'MAE', 'MAPE', 'MSE'])
@@ -113,7 +113,7 @@ class Algos:
     def linearRegression(self, y, params, **kwargs):
         pow = params[0]
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "Autoregressive")
+        name = f"Polynomical regression, degree: {pow}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
         if not window_params:
             window_params["start_pos"] = 0
@@ -124,7 +124,7 @@ class Algos:
                            pow)
         y_pred = np.polyval(coefs, x)
         metrics = self.dataMeasure.measurePredictions(y[y.columns[1]][self.learn_size:], y_pred[self.learn_size:len(y)])
-        out_data = [name, window_params["start_pos"], window_params["stop_pos"], pow]
+        out_data = ['Polynomical regression', window_params["start_pos"], window_params["stop_pos"], pow]
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
                                         'lr_pow', 'MAE', 'MAPE', 'MSE'])
@@ -144,19 +144,19 @@ class Algos:
 
     def movingAverage(self, y, params, func, funcparams, **kwargs):
         windowSize = params[0]
-        kwargs['name'] = kwargs['name'] + f' with moving average, window size = {windowSize}'
+        name = f' with moving average, window size = {windowSize}'
         column = y[y.columns[1]]
         y_pred = column.rolling(window=windowSize).mean()
         for i in range(windowSize - 1):
             y_pred.iloc[i] = column.iloc[i]
         newData = pd.concat([y['Date'], y_pred], axis=1)
         self.outtbl.add([windowSize], self.outtbl.makeIndsArr(['movAvg_WinSize']))
-        return func(newData, funcparams, **kwargs)
+        return func(newData, funcparams, **kwargs, name=name)
 
 
     def arima(self, y, coefs, **kwargs):
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "ARIMA")
+        name = f"ARIMA, parameters: {coefs}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
 
         if not window_params:
@@ -175,7 +175,7 @@ class Algos:
                                                       forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
-        out_data = [name, window_params["start_pos"], window_params["stop_pos"]]
+        out_data = ["ARIMA", window_params["start_pos"], window_params["stop_pos"]]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
@@ -183,7 +183,7 @@ class Algos:
         self.outtbl.add(out_data, inds) 
         self.outtbl.write()
 
-        if self.PLOTS_ON:
+        if isPlot:
             plot = makePlot(y_cont.index, y_cont,
                     pred.predicted_mean,
                     self.learn_size - 1, pred_ci, name=name, xname=self.namex, yname=self.namey,
@@ -201,7 +201,7 @@ class Algos:
         warnings.filterwarnings("ignore")
 
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "SARIMAX")
+        name = f"SARIMAX, parameters: {coefs}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
 
         if not window_params:
@@ -221,7 +221,7 @@ class Algos:
                                                       forecasted[self.learn_size - window_params["start_pos"]:])
 
         # data to out table
-        out_data = [name, window_params["start_pos"], window_params["stop_pos"]]
+        out_data = ['SARIMAX', window_params["start_pos"], window_params["stop_pos"]]
         out_data.extend(coefs)
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', "learn_start_ind", "learn_stop_ind",
@@ -247,7 +247,7 @@ class Algos:
 
     def narx(self, data, params, **kwargs):
         window_params = kwargs.get("window_params", None)
-        name = kwargs.get("name", "Autoregressive")
+        name = f"NARX, parameters: {params}" + kwargs.get("name", "")
         isPlot = kwargs.get("isPlot", False)
 
         if not window_params:
@@ -281,13 +281,12 @@ class Algos:
 
 
     def averange(self, data, algdata, **kwargs):
-        name = kwargs.get("name", "Averange from used algorithms")
         isPlot = kwargs.get("isPlot", True)
 
         df = pd.DataFrame(algdata)
         y = df.mean()
         metrics = self.dataMeasure.measurePredictions(data.iloc[:, [-1]].iloc[self.learn_size:], y)
-        out_data = [name]
+        out_data = ['Averange']
         out_data.extend(metrics.values())
         inds = self.outtbl.makeIndsArr(['name', 'MAE', 'MAPE', 'MSE'])
         self.outtbl.add(out_data, inds)
@@ -296,7 +295,7 @@ class Algos:
             plot = makePlot(data['Date'],
                      data[data.columns[-1]], 
                      y, self.learn_size,
-                     name=name, xname=self.namex, yname=self.namey,
+                     name="Averange from used algorithms", xname=self.namex, yname=self.namey,
                      start_ind = 0, stop_ind = self.learn_size, only_predict=True)
         return {
             "pred": y.to_list(),

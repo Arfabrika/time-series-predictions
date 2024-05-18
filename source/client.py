@@ -7,7 +7,7 @@ def makeData(path, param, isMetro = True):
     if isMetro:
          data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y-%m-%d')
     else:
-         raise NotImplementedError()
+         data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y/%m/%d')
     return data_all[["Date", param]]
 
 """
@@ -32,7 +32,8 @@ def makeData(path, param, isMetro = True):
 """
 def makeAlgoData():
     return {
-        #"needAvg": True,
+        "needAvg": True,
+        # "needAutoChoice": True,
         "algos": {
             "snaive": {
                 "params": [10],
@@ -41,46 +42,68 @@ def makeAlgoData():
                 #     "start_pos": 363,
                 #     "stop_pos": 726
                 # },
-                # "editAlgo": {
-                #      "name": "movingAverage",
-                #      "params": [8]
-                # },
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
+                },
                 "fullTrain": True
             },
             "AR": {
                 "params": [3],
                 "fullTrain": True,
-                "isPlot": False
+                "isPlot": True,
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
+                },
             },
             "linearRegression": {
                 "params": [2],
-                "window_params": {
-                    "start_pos": 0,
-                    "stop_pos": 517
+                "fullTrain": True,
+                # "window_params": {
+                #     "start_pos": 0,
+                #     "stop_pos": 517
+                # },
+                "isPlot": True,
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
                 },
-                "isPlot": True
             },
             "arima": {
                 "params": [0, 4, 9],
-                # "fullTrain": True
-                "window_params": {
-                    "start_pos": 0,
-                    "stop_pos": 749
-                }
+                 "fullTrain": True,
+                 "isPlot": True,
+                # "window_params": {
+                #     "start_pos": 0,
+                #     "stop_pos": 749
+                # }
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
+                },
             },
              "sarimax": {
                 "params": [1, 1, 1, 1, 1, 1, 10],
                 "fullTrain": True,
-                "isPlot": True
+                "isPlot": True,
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
+                },
             },
             "narx": {
                 "params": [2, 2, 42, 100, 1000],
                 "fullTrain": True,
-                "isPlot": True
+                "isPlot": True,
                 # "window_params": {
                 #     "start_pos": 2,
                 #     "stop_pos": 22
                 # }
+                "editAlgo": {
+                     "name": "movingAverage",
+                     "params": [8]
+                },
             }
         }
     }

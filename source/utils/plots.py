@@ -29,7 +29,7 @@ def makePlot(x, y, y_model, pred_ind, pred_ci = None, **kwargs):
             pred_ci.iloc[:, 0],
             pred_ci.iloc[:, 1], color='k', alpha=.2)
     plt.legend()
-    plt.title(kwargs.get('title', ''))
+    plt.title(kwargs.get('title', kwargs.get("name", "Prediction")))
     plt.xlabel(kwargs.get('xname', 'X'))
     plt.ylabel(kwargs.get('yname', 'Y'))
     plt.show()

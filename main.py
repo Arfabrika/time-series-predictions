@@ -4,6 +4,7 @@ from source.algorithms.algos import Algos
 
 def mainfunc():
     learnSize = 0.7
+    # inputData = makeData("./datasets/covid_clear.csv", "ill_cnt", False)
     inputData = makeData("./datasets/metro.csv", "Traffic_volume")
     session = Session(inputData, learnSize)
 
@@ -15,8 +16,9 @@ def mainfunc():
     data = makeAlgoData()
 
     result = session.makePrediction(data)
-    for el in result:
-        print(el['metrics'])
+    print(result)
+    # for el in result:
+    #     print(el['metrics'])
     # try:
     #     print(result[0]["smetrics"])
     # except:

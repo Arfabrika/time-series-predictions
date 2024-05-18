@@ -1,17 +1,19 @@
 from source.algorithms.algos import Algos
+from source.algorithms.non_stationary import statCheck
+from source.utils.dataedit import fillAlgoParams
 
 class Session:
     def __init__(self, data, learn_size, **kwargs) -> None:
         self.data = data
         self.learn_size = int(len(self.data) * learn_size)
-        self.algos = Algos(self.learn_size, "Time", "...")
+        self.algos = Algos(self.learn_size, self.data.columns[0], self.data.columns[-1])
 
 
     def runAlgo(self, cur_algo, params, edit_algo_params, **kwargs):
         if edit_algo_params:
             cur_edit_algo = getattr(self.algos, edit_algo_params['name'])
             try:
-                cur_result = cur_edit_algo(self.data, edit_algo_params['params'], cur_algo, params, kwargs)
+                cur_result = cur_edit_algo(self.data, edit_algo_params['params'], cur_algo, params, **kwargs)
             except Exception as e:
                 print(f"Error in edit algo block: {str(e)}")
                 cur_result = {"metrics": {"MSE": float("inf")}}
@@ -27,11 +29,18 @@ class Session:
     def makePrediction(self, inputData):
         result = []
         # Проверка на стационарность
+        isStat = statCheck(self.data[self.data.columns[-1]])
 
+        # Проверка на автоматическую подборку алгоритма
+        isAutoChoice = inputData.get("needAutoChoice", False)
         # total_best_result = {"metrics": {"MSE": float("inf")}}
         # total_best_win_params = {}
 
-        algos = inputData.get("algos", {})
+        if isAutoChoice:
+            # TODO сделать флаг для отображения графиков доступным для выбора пользователю
+            algos = fillAlgoParams(isStat, True)
+        else:
+            algos = inputData.get("algos", {})
 
         for algo_name, algo_params in algos.items():
             params = algo_params.get("params", None)
@@ -110,7 +119,14 @@ class Session:
             cur_result = self.algos.averange(self.data, algdata)
 
         self.algos.outtbl.save()
-        return result
+        for res in result:
+            if 'pred' in res.keys():
+                del res['pred']
+
+        return {
+            "isStat": isStat,
+            "result": result
+        }
         # return {
         #     "result": result,
         #     "best": best_result
