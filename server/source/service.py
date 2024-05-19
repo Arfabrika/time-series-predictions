@@ -1,9 +1,13 @@
 from source.session import Session
 from fastapi import FastAPI, UploadFile, File, Form, Body
 import pandas as pd
+from pydantic import BaseModel
+from typing import Optional, Any
 
 app = FastAPI()
 
+class FileData(BaseModel):
+    file: Any = None
 # origins = [
 #     "http://localhost:3000",
 #     "localhost:3000"
@@ -19,7 +23,7 @@ app = FastAPI()
 # )
 
 @app.post("/api/getInitData")
-async def getInitData(data: UploadFile,
+async def getInitData(data = File(...),
     needAvg = Form(...),
     learn_size = Form(...),
     needAutoChoice = Form(...),
