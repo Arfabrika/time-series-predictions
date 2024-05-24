@@ -32,14 +32,14 @@ def makeData(path, param, isMetro = True):
 """
 def makeAlgoData():
     return {
-        "needAvg": True,
+        # "needAvg": True,
         "learnSize": 0.7,
         "data": [],
         # "needAutoChoice": True,
         "algos": {
             "snaive": {
-                # "params": [1],
-                "isPlot": False,
+                "params": [1],
+                "isPlot": True,
                 # "window_params": {
                 #     "start_pos": 363,
                 #     "stop_pos": 726
@@ -48,42 +48,42 @@ def makeAlgoData():
                 #      "name": "movingAverage",
                 #      "params": [8]
                 # },
-                # "fullTrain": True
+                "fullTrain": True
             },
             # "AR": {
-            #     "params": [3],
-            #     "fullTrain": True,
-            #     "isPlot": True,
-            #     "editAlgo": {
-            #          "name": "movingAverage",
-            #          "params": [8]
-            #     },
+            #     # "params": [3],
+            #     # "fullTrain": True,
+            #     "isPlot": False,
+            #     # "editAlgo": {
+            #     #      "name": "movingAverage",
+            #     #      "params": [8]
+            #     # },
             # },
             # "linearRegression": {
-            #     "params": [2],
-            #     "fullTrain": True,
+            #     #"params": [2],
+            #     #"fullTrain": True,
             #     # "window_params": {
             #     #     "start_pos": 0,
             #     #     "stop_pos": 517
             #     # },
-            #     "isPlot": True,
-            #     "editAlgo": {
-            #          "name": "movingAverage",
-            #          "params": [8]
-            #     },
+            #     "isPlot": False,
+            #     # "editAlgo": {
+            #     #      "name": "movingAverage",
+            #     #      "params": [8]
+            #     # },
             # },
             # "arima": {
-            #     "params": [0, 4, 9],
-            #      "fullTrain": True,
-            #      "isPlot": True,
+            #     # "params": [0, 4, 9],
+            #     #  "fullTrain": True,
+            #      "isPlot": False,
             #     # "window_params": {
             #     #     "start_pos": 0,
             #     #     "stop_pos": 749
             #     # }
-            #     "editAlgo": {
-            #          "name": "movingAverage",
-            #          "params": [8]
-            #     },
+            #     # "editAlgo": {
+            #     #      "name": "movingAverage",
+            #     #      "params": [8]
+            #     # },
             # },
             #  "sarimax": {
             #     "params": [1, 1, 1, 1, 1, 1, 10],

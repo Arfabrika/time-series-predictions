@@ -21,12 +21,12 @@ def fillAlgoParams(isStat, isPlot):
             "arima": {
                 "isPlot": isPlot,
             },
-            #  "sarimax": {
-            #     "isPlot": isPlot,
-            # },
-            # "narx": {
-            #     "isPlot": isPlot,
-            # }
+             "sarimax": {
+                "isPlot": isPlot,
+            },
+            "narx": {
+                "isPlot": isPlot,
+            }
     }
 
 def bytes2csv(bytes):

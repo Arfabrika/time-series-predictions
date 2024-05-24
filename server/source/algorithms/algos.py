@@ -40,7 +40,10 @@ class Algos:
             end = maxlen if limit['stop'] == 'len' else limit['stop']
             step = limit.get("step", 1)
             iter_list.append(range(start, end, step))
-        return list(product(*iter_list))
+        main_list = list(product(*iter_list))
+        tmp_list = list(product(*[range(0, 5), range(0, 5), range(0, 5)]))
+        final_list = [x for x in main_list if x not in tmp_list]
+        return final_list
 
 
     def snaive(self, y, params, **kwargs):

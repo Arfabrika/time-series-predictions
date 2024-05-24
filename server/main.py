@@ -25,7 +25,9 @@ def mainfunc():
     # except:
     #     print(result)
 
-# if __name__ == '__main__':
-#     mainfunc()
-if __name__ == "__main__":
+IS_DEBUG = False
+
+if __name__ == '__main__' and IS_DEBUG:
+    mainfunc()
+if __name__ == "__main__" and not IS_DEBUG:
     uvicorn.run("source.service:app", host="0.0.0.0", port=8000, reload=True)

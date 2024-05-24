@@ -32,12 +32,13 @@ def makePlot(x, y, y_model, pred_ind, pred_ci = None, **kwargs):
     plt.title(kwargs.get('title', kwargs.get("name", "Prediction")))
     plt.xlabel(kwargs.get('xname', 'X'))
     plt.ylabel(kwargs.get('yname', 'Y'))
-    plt.show()
+    # plt.show()
     # in future
     my_stringIObytes = io.BytesIO()
     plt.savefig(my_stringIObytes, format='jpg')
     my_stringIObytes.seek(0)
     base64Plot = base64.b64encode(my_stringIObytes.read()).decode()
+    plt.cla()
     return base64Plot
 
 def autocorrelationPlot(y):

@@ -1,39 +1,25 @@
-from source.session import Session
-from fastapi import FastAPI, UploadFile, File, Form, Body
+from fastapi import FastAPI, File, Form
 import pandas as pd
-from pydantic import BaseModel
-from typing import Optional, Any
+from source.session import Session
+import json
 
 app = FastAPI()
 
-class FileData(BaseModel):
-    file: Any = None
-# origins = [
-#     "http://localhost:3000",
-#     "localhost:3000"
-# ]
-
-
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"]
-# )
-
-@app.post("/api/getInitData")
-async def getInitData(data = File(...),
-    needAvg = Form(...),
-    learn_size = Form(...),
-    needAutoChoice = Form(...),
-    ):
+@app.post("/api/predict")
+async def predict(
+    data: bytes = File(...),
+    needAvg: bool = Form(...),
+    learn_size: float = Form(...),
+    needAutoChoice: bool = Form(...),
+    algos_str: str = Form(...)
+):
     with open('./tmp/data.csv', "wb") as f:
-        f.write(data.file.read())
+        f.write(data)
     df = pd.read_csv('./tmp/data.csv')
-    session = Session(df, float(learn_size), 
+    df["Date"] = pd.to_datetime(df["Date"], format='%Y-%m-%d')
+    algos = json.loads(algos_str)
+    session = Session(df[["Date", df.columns[-1]]], float(learn_size), 
                      needAvg = bool(needAvg),
                      needAutoChoice = bool(needAutoChoice))
-    pass
-    # result = session.makePrediction(algos)
-    # return result
+    result = session.makePrediction({"algos": algos})
+    return result

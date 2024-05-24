@@ -1,30 +1,32 @@
 import React, {useState} from 'react';
 import Button from '@mui/material/Button';
 import FileUploader from './components/fileuploader';
+import SimpleOutput from './components/simpleoutput';
+import AlgoMenu from './components/algomenu';
+import AlgoParams from './components/algoparams';
+import { algoNames } from './config';
 
 function App() {
-  // const [value, setValue] = useState("ABC")
+  const [postData, setPostData] = useState([]);
 
-  // function submit() {
-  //   const url='https://jsonplaceholder.typicode.com/users';
-  //   const user = {
-  //     "name": "Ivan Ivanov",
-  //     "username": "ivan2002",
-  //     "email": "ivan2002@mail.com",
-  //   };
+  const initialSelectedAlgorithms = algoNames.reduce((acc, algoName) => {
+    acc[algoName] = false;
+    return acc;
+  }, {});
 
-  //   axios.post(url, user)
-  //       .then(response => console.log(response.data))
-  //       .catch(error => console.log(error));
-  //   }
+  const [selectedAlgorithms, setSelectedAlgorithms] = useState(initialSelectedAlgorithms);
+
+
+  const handleDataFetched = (data) => {
+    setPostData(data);
+  };
 
   return (
     <div className="App">
-      <FileUploader></FileUploader>
-      {/* <h1>AB</h1>
-       <input type="file" id="selector" multiple></input>
-       <Button variant="contained" onClick={submit}>Hello world</Button>
-       <div>{value}</div> */}
+      <AlgoMenu selectedAlgorithms={selectedAlgorithms} setSelectedAlgorithms={setSelectedAlgorithms}></AlgoMenu>
+      <AlgoParams parameters={['qwe', 'wer']}></AlgoParams>
+      <FileUploader onDataFetched={handleDataFetched}></FileUploader>
+      <SimpleOutput data={postData}></SimpleOutput>
     </div>
   );
 }

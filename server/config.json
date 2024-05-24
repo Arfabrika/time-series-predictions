@@ -31,15 +31,15 @@
         "arima": [
             {
                 "start": 0,
-                "stop": 3
+                "stop": 9
             },
             {
                 "start": 0,
-                "stop": 3
+                "stop": 9
             },
             {
                 "start": 0,
-                "stop": 3
+                "stop": 9
             }
         ],
         "sarimax": [

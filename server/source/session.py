@@ -30,6 +30,7 @@ class Session:
 
     def makePrediction(self, inputData):
         result = []
+        best_algo_params = {}
         # Проверка на стационарность
         isStat = statCheck(self.data[self.data.columns[-1]])
 
@@ -77,12 +78,13 @@ class Session:
                     # Проверка, надо ли обучать алгоритм на всей обучающей выборке
                     if not algo_params.get("fullTrain", False):
                         for window_size in range(int(len(self.data) * 0.1), self.learn_size, 2):
+                            print(f"Model params in win: {params}, Windows params are: size = {window_size}")
                             for start_pos in range(0, self.learn_size - window_size, window_size):
                                 window_params = {
                                     "start_pos": start_pos,
                                     "stop_pos": start_pos + window_size
                                 }
-                                print(f"Model params in win: {params}, Windows params are: size = {window_size}; {window_params['start_pos']} - {window_params['stop_pos']}")
+                                # print(f"Model params in win: {params}, Windows params are: size = {window_size}; {window_params['start_pos']} - {window_params['stop_pos']}")
 
                                 cur_result = self.runAlgo(cur_algo, params, edit_algo_params,
                                               window_params=window_params, isPlot=isPlot)
@@ -120,9 +122,9 @@ class Session:
             cur_result = self.algos.averange(self.data, algdata)
 
         self.algos.outtbl.save()
-        for res in result:
-            if 'pred' in res.keys():
-                del res['pred']
+        # for res in result:
+        #     if 'pred' in res.keys():
+        #         del res['pred']
 
         return {
             "isStat": isStat,

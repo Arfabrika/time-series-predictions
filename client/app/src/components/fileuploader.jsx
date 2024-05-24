@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { PredictLoader } from '../predictLoader';
 
-function FileUploader() {
+function FileUploader({ onDataFetched }) {
   const [selectedFile, setSelectedFile] = useState(null);
   const [uploadStatus, setUploadStatus] = useState('');
 
@@ -17,35 +18,8 @@ function FileUploader() {
 
     try {
       setUploadStatus('Uploading...');
-
-      const formData = new FormData(); // Создаем объект FormData для отправки данных
-
-      formData.append('data', selectedFile); // Добавляем файл в FormData
-      
-      formData.append('needAvg', false);
-      formData.append('learn_size', 0.7);
-      formData.append('needAutoChoice', false);
-      await console.log(formData);
-
-      const response = await axios.post('http://localhost:8000/api/getInitData', formData,
-    //   {
-    //     "data": selectedFile,
-    //     // "needAvg": true,
-    //     // "learnSize": 0.7,
-    //     // "data": [],
-    //     // "algos": {
-    //     //     "snaive": {
-    //     //         "params": [1],
-    //     //         "isPlot": true,
-    //     //         "fullTrain": true
-    //     //     },
-    //     // }
-    // }, 
-    {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await PredictLoader.getData(selectedFile)
+      await onDataFetched(response.data)
       setUploadStatus('File uploaded successfully!');
       console.log('Server response:', response.data);
     } catch (error) {

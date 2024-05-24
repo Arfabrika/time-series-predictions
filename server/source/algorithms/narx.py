@@ -3,20 +3,8 @@ import numpy as np
 import pandas as pd
 from sysidentpy.neural_network import NARXNN
 from sklearn.preprocessing import MinMaxScaler
-from datetime import datetime
 from sysidentpy.basis_function import Polynomial
 from sysidentpy.utils.narmax_tools import regressor_code
-
-
-def makeData(path, param, isPL):
-    data_all = pd.read_csv(path)
-    if isPL:
-        for i in range(len(data_all["Date"])):
-            data_all.loc[i, "Date"] = pd.to_datetime(datetime.strptime(data_all["Date"].iloc[i], '%B %Y'))
-    else:
-         data_all["Date"] = pd.to_datetime(data_all["Date"], format='%Y/%m/%d')
-    return data_all[["Date", param]]
-
 
 class Model(nn.Module):
     def __init__(self, params, input_size):

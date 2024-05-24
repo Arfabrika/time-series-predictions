@@ -1,12 +1,4 @@
 from statsmodels.tsa.stattools import adfuller, kpss
-import numpy as np
-
-def invboxcox(y,lmbda):
-    # обратное преобразование Бокса-Кокса
-    if lmbda == 0:
-        return(np.exp(y))
-    else:
-        return(np.exp(np.log(lmbda*y+1)/lmbda))
 
 # тесты на стационарность возвращают True, если ряд стационарен
 def statCheck(y):
