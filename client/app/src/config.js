@@ -3,13 +3,18 @@ export const algoNames = [
     'sarimax', 'narx'
 ]
 
+export const algoNamesRus = [
+    'Наивное прогнозирование', 'Авторегрессия', 'Полиномиальная регрессия',
+    'ARIMA', 'SARIMAX', 'NARX'
+]
+
 export const algoEditNames = 'movingAverage'
 
-export const algoParams = {
-    'snaive': ['period'],
-    'AR': ['step'],
-    'linearRegression': ['degree'],
-    'arima': ['p', 'd', 'q'],
-    'sarimax': ['p', 'd', 'q','ps', 'ds', 'qs', 's'],
-    'narx': ['lcnt', 'poldeg', 'neirocnt', 'epochcnt']
-}
+export const algoParamsList = [
+    ['period'],
+    ['step'],
+    ['degree'],
+    ['p', 'd', 'q'],
+    ['p', 'd', 'q','ps', 'ds', 'qs', 's'],
+    ['lcnt', 'poldeg', 'neirocnt', 'epochcnt']
+]

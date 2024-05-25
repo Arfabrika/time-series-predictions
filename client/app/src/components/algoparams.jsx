@@ -1,48 +1,25 @@
 import React, { useState } from 'react';
-import { TextField, Button, Grid, Container } from '@mui/material';
+import { Container } from '@mui/material';
+import InputParamField from './inputparamfiled';
 
-const AlgoParams = ({ parameters }) => {
-  // Состояние для хранения значений параметров
-  const [values, setValues] = useState({});
-
+const AlgoParams = ({ parameters, values, onChangeParam }) => {
   // Обработчик изменений значения параметра
   const handleChange = (parameterName, value) => {
-    setValues(prevValues => ({
-      ...prevValues,
-      [parameterName]: value,
-    }));
-  };
-
-  // Обработчик отправки формы
-  const handleSubmit = (event) => {
-    event.preventDefault();
-    // Здесь вы можете выполнить действия с отправленными данными, например, отправить их на сервер
-    console.log('Submitted values:', values);
+    onChangeParam(parameterName, value);
   };
 
   return (
-    <Container>
-      <form onSubmit={handleSubmit}>
-        <Grid container spacing={2}>
-          {parameters.map((parameter, index) => (
-            <Grid item xs={12} key={index}>
-              <TextField
-                label={parameter}
-                variant="outlined"
-                fullWidth
-                margin="normal"
-                value={values[parameter] || ''}
-                onChange={(e) => handleChange(parameter, e.target.value)}
-              />
-            </Grid>
-          ))}
-          <Grid item xs={12}>
-            <Button variant="contained" color="primary" type="submit">
-              Submit
-            </Button>
-          </Grid>
-        </Grid>
-      </form>
+    <Container sx={{ marginLeft: 0, paddingLeft: 0, border: "1px solid"}}>
+    {
+        parameters && parameters.map((parameter, index) => (
+        <InputParamField
+            key={index}
+            name={parameter}
+            value={values[parameter]}
+            onChange={handleChange}
+        />
+        ))
+    }
     </Container>
   );
 };
