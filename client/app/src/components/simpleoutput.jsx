@@ -3,7 +3,7 @@ import React from 'react';
 function SimpleOutput({ data }) {
   return (
     <div>
-       <p>Ряд стационарный: { data && Object.hasOwn(data, "isStat") ? data.isStat : "Нет данных"}</p>
+       <p>{data && Object.hasOwn(data, "isStat") ? "Ряд стационарный: " + data.isStat : ""}</p>
       {data && Object.hasOwn(data, "result") ? data.result.map((item, index) => (
         <div key={index}>
           <p>Pred: {item.pred.join(', ')}</p>

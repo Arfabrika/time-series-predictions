@@ -5,6 +5,8 @@ import AlgoMenu from './components/algomenu';
 import AlgoParams from './components/algoparams';
 import { algoNames, algoParamsList } from './config';
 import './style/App.css'
+import InputParamField from './components/inputparamfiled';
+import { Checkbox, FormControlLabel } from '@mui/material';
 
 function App() {
   const [postData, setPostData] = useState([]);
@@ -41,6 +43,7 @@ function App() {
 
   return (
     <div className="App">
+      <h2>Алгоритмы прогнозирования</h2>
       <div className="algo_module">
         <AlgoMenu 
         selectedAlgorithms={selectedAlgorithms} 
@@ -54,6 +57,12 @@ function App() {
         values={paramsValues[selectedMenuItemIndex]}/>
       </div>
       <br/>
+      <br/>
+      <InputParamField
+        name='Размер обучающей выборки'
+      />
+      <FormControlLabel control={<Checkbox />} label="Расчет среднего прогнозов" />
+      <FormControlLabel control={<Checkbox />} label="Нужен автоматический выбор алгоритма" />
       {console.log("start---\n")}
       {Object.keys(paramsValues).forEach(key => {
           console.log(key);

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Container } from '@mui/material';
+import { Checkbox, Container, FormControlLabel } from '@mui/material';
 import InputParamField from './inputparamfiled';
 
 const AlgoParams = ({ parameters, values, onChangeParam }) => {
@@ -20,7 +20,11 @@ const AlgoParams = ({ parameters, values, onChangeParam }) => {
         />
         ))
     }
+    <FormControlLabel control={<Checkbox />} label="Нужен график" />
+    <br/>
+    <FormControlLabel control={<Checkbox />} label="Обучение на всей обучающей выборке" />
     </Container>
+
   );
 };
 

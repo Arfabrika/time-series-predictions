@@ -1,5 +1,6 @@
 import React from 'react';
 import { TextField } from '@mui/material';
+import { algoParamsRus } from '../config';
 
 const InputParamField = ({ name, value, onChange }) => {
   const handleChange = (event) => {
@@ -8,15 +9,14 @@ const InputParamField = ({ name, value, onChange }) => {
 
   return (
     <div>
-      <p>{name}</p>
-      <p>{value}</p>
-      <br />
+      <p>{name} | {algoParamsRus[name]}</p>
       <TextField
         variant="outlined"
         margin="normal"
-        sx={{ marginTop: 0 }}
+        sx={{ marginTop: 0}}
         onChange={handleChange}
         value={value}
+        size="small"
       />
     </div>
   );
