@@ -41,7 +41,7 @@ class Algos:
             step = limit.get("step", 1)
             iter_list.append(range(start, end, step))
         main_list = list(product(*iter_list))
-        tmp_list = list(product(*[range(0, 5), range(0, 5), range(0, 5)]))
+        tmp_list = []#list(product(*[range(0, 5), range(0, 5), range(0, 5)]))
         final_list = [x for x in main_list if x not in tmp_list]
         return final_list
 
@@ -76,9 +76,12 @@ class Algos:
                      start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1)
 
         return {
+            "name": "Наивное прогнозирование",
+            "params": params,
             "pred": y_pred.to_list(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }
 
 
@@ -107,9 +110,12 @@ class Algos:
                      start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1)
 
         return {
+            "name": "Авторегрессия",
+            "params": params,
             "pred": y_pred.to_list(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }
 
 
@@ -139,9 +145,12 @@ class Algos:
                      name=name, xname=self.namex, yname=self.namey,
                      start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1)
         return {
+            "name": "Полиномиальная регрессия",
+            "params": params,
             "pred": y_pred.tolist(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }
 
 
@@ -192,10 +201,14 @@ class Algos:
                     self.learn_size - 1, pred_ci, name=name, xname=self.namex, yname=self.namey,
                     start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1
                     )
+        
         return {
+            "name": "ARIMA",
+            "params": coefs,
             "pred": forecasted.tolist(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }
 
 
@@ -242,9 +255,12 @@ class Algos:
                     )
 
         return {
+            "name": "SARIMAX",
+            "params": coefs,
             "pred": forecasted.tolist(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }
 
 
@@ -276,10 +292,13 @@ class Algos:
                      name=name, xname=self.namex, yname=self.namey,
                      start_ind = window_params["start_pos"], stop_ind = window_params["stop_pos"] - 1)
         return {
+            "name": "NARX",
+            "params": params,
             # y here - list
             "pred": y,
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],"plot": None if not isPlot else plot
         }
 
 
@@ -301,7 +320,10 @@ class Algos:
                      name="Averange from used algorithms", xname=self.namex, yname=self.namey,
                      start_ind = 0, stop_ind = self.learn_size, only_predict=True)
         return {
+            "name": "Среднее прогнозов",
+            "params": None,
             "pred": y.to_list(),
             "metrics": metrics,
-            "plot": None if not isPlot else plot
+            "plot": None if not isPlot else plot[0],
+            "fullPlot": None if not isPlot else plot[1],
         }

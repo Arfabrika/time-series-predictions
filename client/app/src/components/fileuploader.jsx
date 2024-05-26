@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PredictLoader } from '../predictLoader';
-import { Button, Input } from '@mui/material';
+import { Button } from '@mui/material';
 import { styled } from '@mui/material/styles';
 
 const VisuallyHiddenInput = styled('input')({
@@ -31,13 +31,12 @@ function FileUploader({ onDataFetched }) {
     }
 
     try {
-      setUploadStatus('Uploading...');
+      setUploadStatus('Производятся вычисления...');
       const response = await PredictLoader.getData(selectedFile)
       await onDataFetched(response.data)
-      setUploadStatus('File uploaded successfully!');
-      console.log('Server response:', response.data);
+      setUploadStatus('Вычисления завершены');
     } catch (error) {
-      setUploadStatus('Failed to upload file');
+      setUploadStatus('Ошибка при вычислениях');
       console.error('Upload failed:', error);
     }
   };

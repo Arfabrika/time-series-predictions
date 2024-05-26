@@ -23,6 +23,8 @@ const AlgoParams = ({ parameters, values, onChangeParam }) => {
     <FormControlLabel control={<Checkbox />} label="Нужен график" />
     <br/>
     <FormControlLabel control={<Checkbox />} label="Обучение на всей обучающей выборке" />
+    <br/>
+    <FormControlLabel control={<Checkbox />} label="Автоматический подбор параметров" />
     </Container>
 
   );

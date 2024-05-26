@@ -6,7 +6,8 @@ import AlgoParams from './components/algoparams';
 import { algoNames, algoParamsList } from './config';
 import './style/App.css'
 import InputParamField from './components/inputparamfiled';
-import { Checkbox, FormControlLabel } from '@mui/material';
+import { Checkbox, Container, FormControlLabel } from '@mui/material';
+import AlgoOut from './components/algoout';
 
 function App() {
   const [postData, setPostData] = useState([]);
@@ -19,6 +20,7 @@ function App() {
   const [selectedAlgorithms, setSelectedAlgorithms] = useState(initialSelectedAlgorithms);
   const [selectedMenuItemIndex, setSelectedMenuItemIndex] = useState(-1);
   const [paramsValues, setParamsValues] = useState(Array(algoParamsList.length).fill({}));
+  const [learnSize, setLearnSize] = useState(0);
 
   // Функция обратного вызова для изменения значения параметра
   const handleParamChange = (parameterName, value) => {
@@ -41,9 +43,13 @@ function App() {
     setSelectedMenuItemIndex(index);
   };
 
+  const handleLearnSize = (value) => {
+    setLearnSize(value);
+  };
+
   return (
-    <div className="App">
-      <h2>Алгоритмы прогнозирования</h2>
+    <Container className="App">
+      <h2>Прогнозирование временных рядов</h2>
       <div className="algo_module">
         <AlgoMenu 
         selectedAlgorithms={selectedAlgorithms} 
@@ -59,7 +65,8 @@ function App() {
       <br/>
       <br/>
       <InputParamField
-        name='Размер обучающей выборки'
+        name='learn_size'
+        onChange={handleLearnSize}
       />
       <FormControlLabel control={<Checkbox />} label="Расчет среднего прогнозов" />
       <FormControlLabel control={<Checkbox />} label="Нужен автоматический выбор алгоритма" />
@@ -73,8 +80,18 @@ function App() {
         {console.log("stop---\n")}
         
       <FileUploader onDataFetched={handleDataFetched}/>
-      <SimpleOutput data={postData}/>
-    </div>
+      <br/>
+      <br/>
+      {
+        Object.hasOwn(postData, "isStat") ?
+        <div>
+          <h2>Результаты прогнозирования</h2>
+          <br/>
+          <AlgoOut data={postData}/>
+        </div>
+        : ""
+      }
+    </Container>
   );
 }
 

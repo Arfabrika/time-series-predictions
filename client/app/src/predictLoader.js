@@ -15,6 +15,11 @@ export class PredictLoader {
           "params": [1],
           "isPlot": true,
           "fullTrain": true
+          },
+        "AR": {
+          "params": [7],
+          "isPlot": true,
+          "fullTrain": true
           }
       }));
 

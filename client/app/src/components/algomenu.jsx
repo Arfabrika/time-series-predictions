@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { FormControlLabel, Checkbox, TextField, Grid, Container, MenuList, MenuItem } from '@mui/material';
+import { Checkbox, MenuList, MenuItem } from '@mui/material';
 import { algoNamesRus } from '../config';
 
-const AlgoMenu = ({ selectedAlgorithms, setSelectedAlgorithms, onMenuItemSelect }) => {
+const AlgoMenu = ({ selectedAlgorithms, onMenuItemSelect }) => {
   const [selectedMenuItem, setSelectedMenuItem] = useState(null);
 
   const handleMenuItemClick = (index) => {
@@ -25,7 +25,7 @@ const AlgoMenu = ({ selectedAlgorithms, setSelectedAlgorithms, onMenuItemSelect 
             <div style={{ display: 'flex', alignItems: 'center' }}>
               <Checkbox></Checkbox>
               <div onClick={() => handleMenuItemClick(ind)}>
-                {key} | {algoNamesRus[ind]} | {selectedAlgorithms[key].toString()}
+                {algoNamesRus[ind]} | {selectedAlgorithms[key].toString()}
               </div>
             </div>
           </MenuItem>

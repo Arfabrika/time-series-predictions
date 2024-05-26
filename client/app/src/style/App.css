@@ -2,11 +2,11 @@
     display: inline-flex;
 }
 
-p {
+p, ul {
     margin: 0;
     font-family: "Roboto", "Helvetica", "Arial", sans-serif;
     font-weight: 400;
-    font-size: 1rem;
+    font-size: 1.2rem;
     line-height: 1.5;
     letter-spacing: 0.00938em;
 }
@@ -19,3 +19,25 @@ h2 {
     line-height: 2;
     letter-spacing: 0.00938em;
 }
+
+h3 {
+    margin: 0;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 800;
+    font-size: 1.8rem;
+    line-height: 2;
+    letter-spacing: 0.00938em;
+}
+
+h4 {
+    margin: 0;
+    font-family: "Roboto", "Helvetica", "Arial", sans-serif;
+    font-weight: 700;
+    font-size: 1.6rem;
+    line-height: 2;
+    letter-spacing: 0.00938em;
+}
+
+body {
+    background: linear-gradient(to right, #cae4ec, #00BFFF);
+  }

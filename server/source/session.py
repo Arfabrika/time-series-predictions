@@ -34,9 +34,6 @@ class Session:
         # Проверка на стационарность
         isStat = statCheck(self.data[self.data.columns[-1]])
 
-        # total_best_result = {"metrics": {"MSE": float("inf")}}
-        # total_best_win_params = {}
-
         # Проверка на автоматическую подборку алгоритма
         if self.isAutoChoice:
             # TODO сделать флаг для отображения графиков доступным для выбора пользователю
@@ -108,11 +105,6 @@ class Session:
             print("Best window params", best_win_params)
             print("Best algo params:", best_algo_params)
 
-            # Поиск лучшего алгоритма - вынести логику поиска лучшего на фронт?
-            # if best_result["metrics"]["MSE"] < total_best_result["metrics"]["MSE"]:
-            #     total_best_result = best_result
-            #     total_best_win_params = best_win_params
-
         # Применение усредненного алгоритма
         if self.isAvg:
             # Сбор данных от других алгоритмов (только для прогноза!)
@@ -120,17 +112,9 @@ class Session:
             for res in result:
                 algdata.append(res['pred'][self.algos.learn_size:])
             cur_result = self.algos.averange(self.data, algdata)
-
         self.algos.outtbl.save()
-        # for res in result:
-        #     if 'pred' in res.keys():
-        #         del res['pred']
 
         return {
             "isStat": isStat,
             "result": result
         }
-        # return {
-        #     "result": result,
-        #     "best": best_result
-        #     }

@@ -9,7 +9,7 @@ const InputParamField = ({ name, value, onChange }) => {
 
   return (
     <div>
-      <p>{name} | {algoParamsRus[name]}</p>
+      <p>{algoParamsRus[name]}</p>
       <TextField
         variant="outlined"
         margin="normal"

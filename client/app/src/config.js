@@ -1,14 +1,12 @@
 export const algoNames = [
     'snaive', 'AR', 'linearRegression', 'arima',
-    'sarimax', 'narx'
+    'sarimax', 'narx', 'movingAverange'
 ]
 
 export const algoNamesRus = [
     'Наивное прогнозирование', 'Авторегрессия', 'Полиномиальная регрессия',
-    'ARIMA', 'SARIMAX', 'NARX'
+    'ARIMA', 'SARIMAX', 'NARX', 'Среднее  скользящее арифметическое'
 ]
-
-export const algoEditNames = 'movingAverage'
 
 export const algoParamsList = [
     ['period'],
@@ -16,7 +14,8 @@ export const algoParamsList = [
     ['degree'],
     ['p', 'd', 'q'],
     ['p', 'd', 'q','ps', 'ds', 'qs', 's'],
-    ['lcnt', 'poldeg', 'neirocnt', 'epochcnt']
+    ['lcnt', 'poldeg', 'neirocnt', 'epochcnt'],
+    ['size']
 ]
 
 export const algoParamsRus = {
@@ -33,5 +32,7 @@ export const algoParamsRus = {
     'lcnt': 'Количество слоев в нейронной сети',
     'poldeg': 'Степень',
     'neirocnt': 'Количество нейронов в слое',
-    'epochcnt': 'Количество обучающих эпох'
+    'epochcnt': 'Количество обучающих эпох',
+    'size': 'Размер окна',
+    'learn_size': 'Размер обучающей выборки (в процентах)'
 }
